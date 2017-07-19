@@ -5,7 +5,10 @@
  */
 package textclassifier;
 
+import java.io.IOException;
 import static java.time.Clock.system;
+import libsvm.svm;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 /**
  *
@@ -19,12 +22,26 @@ public class TextClassifier {
     public static void main(String[] args) {
         // TODO code application logic here
         
-        TrainingData testData = new TrainingData();
-        try {
-            testData.readFromDataDump();
-        } catch (Exception ex) {
-            System.out.println("Couldn't run the method: readFromDataDump()");
-        }   
+        DataCreator testData = new DataCreator();
+        
+//        try {
+//            testData.createDataDumpFromTxtFolder("business");
+//        } catch (IOException ex) {
+//            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder()");
+//        }  
+
+        try { 
+            testData.createDataDumpFromExcelSheet(); 
+        }
+        catch (IOException | InvalidFormatException ex) { 
+            System.out.println(ex); 
+        }
+        
+        /*
+        svm SupportVectorMachine = new svm(); 
+        SupportVectorMachine.svm_train(s, s1)
+        */
+
     }
 
 }
