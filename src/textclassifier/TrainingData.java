@@ -16,12 +16,23 @@ import java.util.Set;
  */
 public class TrainingData {
 
+    private Map<String, Integer> wordFrequencyMap;
+    
+    /*
+    
+    readFromDataDump() - Function that creates a word frequency chart for all the 
+    files in the /data folder. 
+    returnType: Void. 
+    parameters: Null.
+    
+    */
+    
     public void readFromDataDump() throws FileNotFoundException, IOException {
 
         String fileName = "data/mock.txt";
         String fileLine;
 
-        Map<String, Integer> wordFrequencyMap = new HashMap<String, Integer>();
+        wordFrequencyMap = new HashMap<String, Integer>();
 
         try {
 
@@ -47,8 +58,35 @@ public class TrainingData {
             
             bufferedReader.close();
             
+            createLIBSVMDataFile();
+            
         } catch (FileNotFoundException ex) {
             System.out.println("File " + fileName + " couldn't be found.");
         }
     }
+    
+    /*
+    
+    createLIBSVMDataFile() - Function that creates a text file in the LIBSVM format
+    to train the SVM classifier. 
+    returnType: Void. 
+    parameters: Null.
+    
+    */
+    
+    private void createLIBSVMDataFile() throws IOException {
+        String fileNameString = "data/writeData.txt";
+        FileWriter fileWriter = new FileWriter(fileNameString);
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        
+        Integer value = 1; 
+        Set<String> keys = wordFrequencyMap.keySet();
+            for (String key: keys) {
+                bufferedWriter.write(value + ":" + wordFrequencyMap.get(key) + " ");
+                value = value + 1;
+            }   
+            
+            bufferedWriter.close();
+    }
+    
 }
