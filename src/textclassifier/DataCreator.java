@@ -22,26 +22,29 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class DataCreator {
 
+    // A word frequency map for the last document or row of excel sheet that was read. 
     private Map<Integer, Integer> wordFrequencyMap;
     private Map<String, Integer> classificationMap;
+    // Universal Map to make sure that the same word in different titles have the same index in the resultant data set.
     private HashMap<String, Integer> wordIndexMap = new HashMap<String, Integer>();
-    private Integer wordIndexSize = 1; 
-    private ArrayList<String> classTypes; // ArrayList to store the list of all the folders in /data.
+    // Size of the wordIndexMap to keep track of the index to be assigned to the next new word. 
+    private Integer wordIndexSize = 1;
 
     public void splitString(String fileLine) {
-        
-        wordFrequencyMap = new HashMap<Integer, Integer>(); 
+
+        wordFrequencyMap = new TreeMap<Integer, Integer>();
         String[] words = fileLine.split(" ");
 
         for (String word : words) {
-            if (wordFrequencyMap.containsKey(word) == false) {
-                if (wordIndexMap.containsKey(word) == false) {
-                    wordIndexMap.put(word, wordIndexSize);
-                    wordIndexSize += 1; 
-                }
-                wordFrequencyMap.put(wordIndexMap.get(word), 1);
+            if (wordIndexMap.containsKey(word) == false) {
+                wordIndexMap.put(word, wordIndexSize);
+                wordIndexSize += 1;
+            }
+            Integer wordIndex = wordIndexMap.get(word);
+            if (wordFrequencyMap.containsKey(wordIndex) == false) {
+                wordFrequencyMap.put(wordIndex, 1);
             } else {
-                wordFrequencyMap.put(wordIndexMap.get(word), wordFrequencyMap.get(word) + 1);
+                wordFrequencyMap.put(wordIndex, wordFrequencyMap.get(wordIndex) + 1);
             }
         }
     }
@@ -64,19 +67,23 @@ public class DataCreator {
             Integer classTypeIndentifier = 1;
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0) { continue; }
+                if (row.getRowNum() == 0) {
+                    continue;
+                }
                 String classType = row.getCell(4).toString();
-                if (classType == null) { continue; }
+                if (classType == null) {
+                    continue;
+                }
                 if (classificationMap.containsKey(classType) == false) {
                     classificationMap.put(classType, classTypeIndentifier);
                     classTypeIndentifier += 1;
                 }
                 excelSheetDatabase.put(row.getCell(1).toString(), classificationMap.get(classType));
             }
-            
+
             for (String key : excelSheetDatabase.keySet()) {
                 splitString(key);
-                createLIBSVMDataFile(null, excelSheetDatabase.get(key));
+                createLIBSVMDataFile(excelSheetDatabase.get(key));
             }
 
         } catch (InvalidFormatException ex) {
@@ -98,18 +105,19 @@ public class DataCreator {
         for (File file : files) {
             if (file.isFile()) {
                 String fileName = file.getAbsolutePath();
+                
                 String fileLine;
 
                 try {
 
                     FileReader fileReader = new FileReader(fileName);
                     BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    
+
                     while ((fileLine = bufferedReader.readLine()) != null) {
                         System.out.println(fileLine);
                         splitString(fileLine);
                     }
-                    
+
                     Set<Integer> keys = wordFrequencyMap.keySet();
                     keys.forEach((key) -> {
                         System.out.println(key + ": " + wordFrequencyMap.get(key));
@@ -117,10 +125,10 @@ public class DataCreator {
 
                     bufferedReader.close();
 
-                    createLIBSVMDataFile(folder, 0);
+                    createLIBSVMDataFile(0);
 
                 } catch (FileNotFoundException ex) {
-                    System.out.println("File " + fileName + " couldn't be found.");
+                    System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
                 }
             }
         }
@@ -130,26 +138,21 @@ public class DataCreator {
     createLIBSVMDataFile() - Function that creates a text file in the LIBSVM format
     to train the SVM classifier. 
     returnType: Void. 
-    parameters: String folder - specifices folder where datafile has to be created.
-                Integer classLabel - specifies the label for the dataPoint. 
+    parameters: Integer classLabel - specifies the label for the dataPoint.    
      */
-    private void createLIBSVMDataFile(String folder, Integer classLabel) throws IOException {
-        if (folder == null) {
-            folder = "misc";
-        } else if (classLabel == null) {
+    private void createLIBSVMDataFile(Integer classLabel) throws IOException {
+        if (classLabel == null) {
             classLabel = 0;
         }
-        String fileNameString = "data/" + folder + "/libsvmData.txt";
+        String fileNameString = "data/libsvmData.txt";
         FileWriter fileWriter = new FileWriter(fileNameString, true);
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
         bufferedWriter.write(classLabel + " ");
 
-        Integer value = 1;
         Set<Integer> keys = wordFrequencyMap.keySet();
         for (Integer key : keys) {
-            bufferedWriter.write(value + ":" + wordFrequencyMap.get(key) + " ");
-            value = value + 1;
+            bufferedWriter.write(key + ":" + wordFrequencyMap.get(key) + " ");
         }
         bufferedWriter.write('\n');
         bufferedWriter.flush();
