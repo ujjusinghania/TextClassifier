@@ -6,8 +6,6 @@
 package textclassifier;
 
 import java.io.IOException;
-import static java.time.Clock.system;
-import libsvm.svm;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 /**

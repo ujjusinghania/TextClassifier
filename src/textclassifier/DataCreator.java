@@ -22,18 +22,26 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class DataCreator {
 
-    private Map<String, Integer> wordFrequencyMap;
-    private TreeMap<String, Integer> classificationMap;
+    private Map<Integer, Integer> wordFrequencyMap;
+    private Map<String, Integer> classificationMap;
+    private HashMap<String, Integer> wordIndexMap = new HashMap<String, Integer>();
+    private Integer wordIndexSize = 1; 
     private ArrayList<String> classTypes; // ArrayList to store the list of all the folders in /data.
 
     public void splitString(String fileLine) {
+        
+        wordFrequencyMap = new HashMap<Integer, Integer>(); 
         String[] words = fileLine.split(" ");
 
         for (String word : words) {
-            if (wordFrequencyMap.containsKey(word) != true) {
-                wordFrequencyMap.put(word, 1);
+            if (wordFrequencyMap.containsKey(word) == false) {
+                if (wordIndexMap.containsKey(word) == false) {
+                    wordIndexMap.put(word, wordIndexSize);
+                    wordIndexSize += 1; 
+                }
+                wordFrequencyMap.put(wordIndexMap.get(word), 1);
             } else {
-                wordFrequencyMap.put(word, wordFrequencyMap.get(word) + 1);
+                wordFrequencyMap.put(wordIndexMap.get(word), wordFrequencyMap.get(word) + 1);
             }
         }
     }
@@ -52,23 +60,23 @@ public class DataCreator {
             XSSFSheet sheet = wb.getSheetAt(0);
 
             Map<String, Integer> excelSheetDatabase = new HashMap<String, Integer>();
+            classificationMap = new HashMap<String, Integer>();
             Integer classTypeIndentifier = 1;
 
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) { continue; }
-                String classType = row.getCell(4).getStringCellValue();
-                System.out.println(classType);
+                String classType = row.getCell(4).toString();
                 if (classType == null) { continue; }
                 if (classificationMap.containsKey(classType) == false) {
                     classificationMap.put(classType, classTypeIndentifier);
                     classTypeIndentifier += 1;
                 }
-                excelSheetDatabase.put(row.getCell(0).toString(), classificationMap.get(classType));
+                excelSheetDatabase.put(row.getCell(1).toString(), classificationMap.get(classType));
             }
-
+            
             for (String key : excelSheetDatabase.keySet()) {
                 splitString(key);
-                createLIBSVMDataFile("", excelSheetDatabase.get(key));
+                createLIBSVMDataFile(null, excelSheetDatabase.get(key));
             }
 
         } catch (InvalidFormatException ex) {
@@ -92,8 +100,6 @@ public class DataCreator {
                 String fileName = file.getAbsolutePath();
                 String fileLine;
 
-                wordFrequencyMap = new TreeMap<String, Integer>();
-
                 try {
 
                     FileReader fileReader = new FileReader(fileName);
@@ -104,7 +110,7 @@ public class DataCreator {
                         splitString(fileLine);
                     }
                     
-                    Set<String> keys = wordFrequencyMap.keySet();
+                    Set<Integer> keys = wordFrequencyMap.keySet();
                     keys.forEach((key) -> {
                         System.out.println(key + ": " + wordFrequencyMap.get(key));
                     });
@@ -140,8 +146,8 @@ public class DataCreator {
         bufferedWriter.write(classLabel + " ");
 
         Integer value = 1;
-        Set<String> keys = wordFrequencyMap.keySet();
-        for (String key : keys) {
+        Set<Integer> keys = wordFrequencyMap.keySet();
+        for (Integer key : keys) {
             bufferedWriter.write(value + ":" + wordFrequencyMap.get(key) + " ");
             value = value + 1;
         }
