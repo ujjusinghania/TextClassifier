@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import javax.print.attribute.standard.MediaSize;
 import libsvm.svm;
 import libsvm.svm_model;
@@ -24,7 +25,7 @@ import libsvm.svm_problem;
  *
  * @author ujjwalsinghania
  */
-public class TextClassifier {
+public class TextClassifierSVM {
 
     /*
     createLIBSVMProblemFromDataFile() - Function that creates a svm_problem object from a data file in
@@ -105,8 +106,8 @@ public class TextClassifier {
 
             TrainingParameters.svm_type = svm_parameter.C_SVC;
             TrainingParameters.kernel_type = svm_parameter.RBF;
-            TrainingParameters.degree = 3;
-            TrainingParameters.gamma = 16;
+            TrainingParameters.degree = 1;
+            TrainingParameters.gamma = 1;
         TrainingParameters.coef0 = 0;
             TrainingParameters.C = 1;
         TrainingParameters.nu = 0.5;
@@ -129,24 +130,32 @@ public class TextClassifier {
             System.out.println("Finished saving model.");
 
             System.out.println("Started testing model.");
-//            HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile();
-//            int correctPredictions = 0;
-//            ArrayList<Double> predictionList = new ArrayList<>();
-//            for (svm_node[] testingValue: testingDataFile.keySet()) {
-//                Double prediction = svm.svm_predict(SVMModel, testingValue);
-//                if (prediction == testingDataFile.get(testingValue)) {
-//                    correctPredictions += 1;
-//                }
-//                predictionList.add(prediction);
-//            }
+            HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile();
+            double correctPredictions = 0;
+            ArrayList<Double> predictionList = new ArrayList<>();
+            for (svm_node[] testingValue: testingDataFile.keySet()) {
+                Double prediction = svm.svm_predict(SVMModel, testingValue);
+                if (Objects.equals(prediction, testingDataFile.get(testingValue))) {
+                    correctPredictions += 1;
+                    System.out.println("Correct");
+                }
+                predictionList.add(prediction);
+            }
             
-            svm_problem TestingData = createLIBSVMProblemFromDataFile("a1aT");
-            double[] predictionValues = new double[TestingData.y.length];
-            svm.svm_cross_validation(TestingData, TrainingParameters, 0, predictionValues);
+//            svm_problem TestingData = createLIBSVMProblemFromDataFile("a1aT");
+//            double[] predictionValues = new double[TestingData.y.length];
+//            svm.svm_cross_validation(TestingData, TrainingParameters, svm.svm_get_nr_class(SVMModel), predictionValues);
+//            
+//            for (int i = 0; i < predictionValues.length; i++) {
+//                System.out.println(TestingData.y[i] + "|" + predictionValues[i]);
+//                if (TestingData.y[i] == predictionValues[i]) {
+//                    System.out.println("Correct");
+//                }
+//            }
 
             System.out.println("Finished testing model.");
-            
-//            System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + correctPredictions/predictionList.size());
+            Double accuracy = correctPredictions/(double)(predictionList.size()) * 100.0;
+            System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
         
         } catch (Exception ex) {
             System.out.println("Caught an exception: main(): " + ex);
