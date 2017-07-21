@@ -30,7 +30,7 @@ public class DataCreator {
     // Size of the wordIndexMap to keep track of the index to be assigned to the next new word. 
     private Integer wordIndexSize = 1;
 
-    public void splitString(String fileLine) {
+    private void splitString(String fileLine) {
 
         wordFrequencyMap = new TreeMap<Integer, Integer>();
         String[] words = fileLine.split(" ");
