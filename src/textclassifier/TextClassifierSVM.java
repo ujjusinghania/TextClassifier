@@ -20,6 +20,7 @@ import libsvm.svm_model;
 import libsvm.svm_node;
 import libsvm.svm_parameter;
 import libsvm.svm_problem;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 /**
  *
@@ -39,7 +40,7 @@ public class TextClassifierSVM {
         ArrayList<svm_node[]> xValues = new ArrayList<>();
         ArrayList<Double> yValues = new ArrayList<>();
         try {
-            FileReader fileReader = new FileReader("data/"+filename+".txt");
+            FileReader fileReader = new FileReader("data/" + filename + ".txt");
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String fileLine;
 
@@ -86,7 +87,6 @@ public class TextClassifierSVM {
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
-
         DataCreator dataCreator = new DataCreator();
 
 //        try {
@@ -94,78 +94,58 @@ public class TextClassifierSVM {
 //        } catch (IOException ex) {
 //            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder()");
 //        }
-//        try {
-//            dataCreator.createDataDumpFromExcelSheet();
-//        } catch (IOException | InvalidFormatException ex) {
-//            System.out.println(ex);
-//        }
         try {
-
-            svm_problem TrainingData = createLIBSVMProblemFromDataFile("a1a");
-            svm_parameter TrainingParameters = new svm_parameter();
-
-            TrainingParameters.svm_type = svm_parameter.C_SVC;
-            TrainingParameters.kernel_type = svm_parameter.RBF;
-            TrainingParameters.degree = 1;
-            TrainingParameters.gamma = 1;
-        TrainingParameters.coef0 = 0;
-            TrainingParameters.C = 1;
-        TrainingParameters.nu = 0.5;
-        TrainingParameters.p = 0.1;
-            TrainingParameters.cache_size = 200;
-            TrainingParameters.eps = 0.001;
-            TrainingParameters.shrinking = 1;
-        TrainingParameters.probability = 0;
-            TrainingParameters.weight = new double[1];
-
-            System.out.println("Started training SVM.");
-            
-            svm_model SVMModel = svm.svm_train(TrainingData, TrainingParameters);
-
-            System.out.println("Finished training SVM.");
-            
-            System.out.println("Started saving model.");
-            String fileNameString = "data/a1a.txt.model";
-            svm.svm_save_model(fileNameString, SVMModel);
-            System.out.println("Finished saving model.");
-
-            System.out.println("Started testing model.");
-            HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile();
-            double correctPredictions = 0;
-            ArrayList<Double> predictionList = new ArrayList<>();
-            for (svm_node[] testingValue: testingDataFile.keySet()) {
-                Double prediction = svm.svm_predict(SVMModel, testingValue);
-                if (Objects.equals(prediction, testingDataFile.get(testingValue))) {
-                    correctPredictions += 1;
-                    System.out.println("Correct");
-                }
-                predictionList.add(prediction);
-            }
-            
-//            svm_problem TestingData = createLIBSVMProblemFromDataFile("a1aT");
-//            double[] predictionValues = new double[TestingData.y.length];
-//            svm.svm_cross_validation(TestingData, TrainingParameters, svm.svm_get_nr_class(SVMModel), predictionValues);
-//            
-//            for (int i = 0; i < predictionValues.length; i++) {
-//                System.out.println(TestingData.y[i] + "|" + predictionValues[i]);
-//                if (TestingData.y[i] == predictionValues[i]) {
-//                    System.out.println("Correct");
-//                }
-//            }
-
-            System.out.println("Finished testing model.");
-            Double accuracy = correctPredictions/(double)(predictionList.size()) * 100.0;
-            System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
-        
-        } catch (Exception ex) {
-            System.out.println("Caught an exception: main(): " + ex);
+            dataCreator.createDataDumpFromExcelSheet();
+        } catch (IOException | InvalidFormatException ex) {
+            System.out.println(ex);
         }
+//        try {
+//
+//            svm_problem TrainingData = createLIBSVMProblemFromDataFile("a1a");
+//            svm_parameter TrainingParameters = new svm_parameter();
+//
+//            TrainingParameters.svm_type = svm_parameter.C_SVC;
+//            TrainingParameters.kernel_type = svm_parameter.LINEAR;
+//            TrainingParameters.degree = 1;
+//            TrainingParameters.gamma = 1;
+//            TrainingParameters.coef0 = 0;
+//            TrainingParameters.C = 1;
+//            TrainingParameters.nu = 0.5;
+//            TrainingParameters.p = 0.1;
+//            TrainingParameters.cache_size = 200;
+//            TrainingParameters.eps = 0.001;
+//            TrainingParameters.shrinking = 1;
+//            TrainingParameters.probability = 0;
+//            TrainingParameters.weight = new double[1];
+//
+//            svm_model SVMModel = svm.svm_train(TrainingData, TrainingParameters);
+//
+//            String fileNameString = "data/a1a.txt.model";
+//            svm.svm_save_model(fileNameString, SVMModel);
+//
+//            HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile("a1aT");
+//            double correctPredictions = 0;
+//            ArrayList<Double> predictionList = new ArrayList<>();
+//            for (svm_node[] testingValue : testingDataFile.keySet()) {
+//                Double prediction = svm.svm_predict(SVMModel, testingValue);
+//                if (Objects.equals(prediction, testingDataFile.get(testingValue))) {
+//                    correctPredictions += 1;
+//                }
+//                predictionList.add(prediction);
+//            }
+//
+//            Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
+//            System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
+//
+//        } catch (Exception ex) {
+//            System.out.println("Caught an exception: main(): " + ex);
+//        }
     }
 
-    private static HashMap<svm_node[], Double> readTestingValuesFromDataFile() throws IOException {
+    private static HashMap<svm_node[], Double> readTestingValuesFromDataFile(String filename) throws IOException {
         HashMap<svm_node[], Double> testingData = new HashMap<>();
         try {
-            FileReader fileReader = new FileReader("data/a1aT.txt");
+            FileReader fileReader = new FileReader("data/" + filename + ".txt");
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String fileLine;
 

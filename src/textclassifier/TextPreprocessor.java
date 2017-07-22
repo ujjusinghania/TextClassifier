@@ -11,4 +11,23 @@ package textclassifier;
  */
 public class TextPreprocessor {
     
+    // Use .matches()
+    
+    private String specialCharacterRemover(String word) {
+        return word.replaceAll("[^a-zA-Z0-9%$]", "");
+    }
+    
+    public String cleanString(String word) { 
+        String cleanWord = specialCharacterRemover(word).toLowerCase();
+        if (cleanWord.contains("$") == true) {
+            return "currency";
+        }
+        if (cleanWord.contains("%") == true) {
+            return "percentage";
+        }
+        return cleanWord;
+}
+    
+    
+    
 }

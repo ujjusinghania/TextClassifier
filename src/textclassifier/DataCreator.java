@@ -34,13 +34,15 @@ public class DataCreator {
 
         wordFrequencyMap = new TreeMap<Integer, Integer>();
         String[] words = fileLine.split(" ");
+        TextPreprocessor textCleaner = new TextPreprocessor();
 
         for (String word : words) {
-            if (wordIndexMap.containsKey(word) == false) {
-                wordIndexMap.put(word, wordIndexSize);
+            String cleanWord = textCleaner.cleanString(word);
+            if (wordIndexMap.containsKey(cleanWord) == false) {
+                wordIndexMap.put(cleanWord, wordIndexSize);
                 wordIndexSize += 1;
             }
-            Integer wordIndex = wordIndexMap.get(word);
+            Integer wordIndex = wordIndexMap.get(cleanWord);
             if (wordFrequencyMap.containsKey(wordIndex) == false) {
                 wordFrequencyMap.put(wordIndex, 1);
             } else {
