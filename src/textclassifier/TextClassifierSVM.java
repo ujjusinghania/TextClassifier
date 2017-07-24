@@ -34,13 +34,13 @@ public class TextClassifierSVM {
     returnType: Void. 
     parameters: Null.
      */
-    public static svm_problem createLIBSVMProblemFromDataFile(String filename) throws FileNotFoundException, IOException {
+    protected static svm_problem createLIBSVMProblemFromDataFile(String filename) throws FileNotFoundException, IOException {
         svm_problem TrainingData = new svm_problem();
 
         ArrayList<svm_node[]> xValues = new ArrayList<>();
         ArrayList<Double> yValues = new ArrayList<>();
         try {
-            FileReader fileReader = new FileReader("data/" + filename + ".txt");
+            FileReader fileReader = new FileReader("data/" + filename);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String fileLine;
 
@@ -50,7 +50,7 @@ public class TextClassifierSVM {
 
                 yValues.add(Double.parseDouble(dataValues[0]));
                 svm_node[] rowValue = new svm_node[dataValues.length - 1];
-//
+
                 for (int i = 1; i < dataValues.length; i++) {
                     String dataPoint = dataValues[i];
                     String[] dataPointValues = dataPoint.split(":");
@@ -62,7 +62,7 @@ public class TextClassifierSVM {
                 xValues.add(rowValue);
             }
         } catch (FileNotFoundException ex) {
-            System.out.println("File libsvmData.txt couldn't be found: createLIBSVMProblemFromDataFile()");
+            System.out.println("File " + filename + " couldn't be found: createLIBSVMProblemFromDataFile()");
         }
 
         double[] yValuesArray = new double[yValues.size()];
@@ -87,65 +87,45 @@ public class TextClassifierSVM {
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
-        DataCreator dataCreator = new DataCreator();
+        LIBSVMFormatDataCreator dataCreator = new LIBSVMFormatDataCreator();
 
 //        try {
 //            testData.createDataDumpFromTxtFolder("business");
 //        } catch (IOException ex) {
-//            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder()");
+//            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
+//        }
+//        try {
+//            dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
+//        } catch (IOException | InvalidFormatException ex) {
+//            System.out.println("Couldn't run the method: createDataDumpFromExcelSheet(): " + ex);
 //        }
         try {
-            dataCreator.createDataDumpFromExcelSheet();
-        } catch (IOException | InvalidFormatException ex) {
-            System.out.println(ex);
+
+            svm_model SVMModel = TextClassifierSVM.trainSVMAndSaveModel("a1a.txt");
+
+            HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile("a1aT.txt");
+            double correctPredictions = 0;
+            ArrayList<Double> predictionList = new ArrayList<>();
+            for (svm_node[] testingValue : testingDataFile.keySet()) {
+                Double prediction = svm.svm_predict(SVMModel, testingValue);
+                if (Objects.equals(prediction, testingDataFile.get(testingValue))) {
+                    correctPredictions += 1;
+                }
+                predictionList.add(prediction);
+            }
+
+            Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
+            System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
+
+        } catch (Exception ex) {
+            System.out.println("Caught an exception: main(): " + ex);
         }
-//        try {
-//
-//            svm_problem TrainingData = createLIBSVMProblemFromDataFile("a1a");
-//            svm_parameter TrainingParameters = new svm_parameter();
-//
-//            TrainingParameters.svm_type = svm_parameter.C_SVC;
-//            TrainingParameters.kernel_type = svm_parameter.LINEAR;
-//            TrainingParameters.degree = 1;
-//            TrainingParameters.gamma = 1;
-//            TrainingParameters.coef0 = 0;
-//            TrainingParameters.C = 1;
-//            TrainingParameters.nu = 0.5;
-//            TrainingParameters.p = 0.1;
-//            TrainingParameters.cache_size = 200;
-//            TrainingParameters.eps = 0.001;
-//            TrainingParameters.shrinking = 1;
-//            TrainingParameters.probability = 0;
-//            TrainingParameters.weight = new double[1];
-//
-//            svm_model SVMModel = svm.svm_train(TrainingData, TrainingParameters);
-//
-//            String fileNameString = "data/a1a.txt.model";
-//            svm.svm_save_model(fileNameString, SVMModel);
-//
-//            HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile("a1aT");
-//            double correctPredictions = 0;
-//            ArrayList<Double> predictionList = new ArrayList<>();
-//            for (svm_node[] testingValue : testingDataFile.keySet()) {
-//                Double prediction = svm.svm_predict(SVMModel, testingValue);
-//                if (Objects.equals(prediction, testingDataFile.get(testingValue))) {
-//                    correctPredictions += 1;
-//                }
-//                predictionList.add(prediction);
-//            }
-//
-//            Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
-//            System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
-//
-//        } catch (Exception ex) {
-//            System.out.println("Caught an exception: main(): " + ex);
-//        }
     }
 
-    private static HashMap<svm_node[], Double> readTestingValuesFromDataFile(String filename) throws IOException {
+    protected static HashMap<svm_node[], Double> readTestingValuesFromDataFile(String filename) throws IOException {
         HashMap<svm_node[], Double> testingData = new HashMap<>();
         try {
-            FileReader fileReader = new FileReader("data/" + filename + ".txt");
+            FileReader fileReader = new FileReader("data/" + filename);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String fileLine;
 
@@ -167,9 +147,35 @@ public class TextClassifierSVM {
                 testingData.put(rowValue, yValue);
             }
         } catch (FileNotFoundException ex) {
-            System.out.println("File libsvmData.txt couldn't be found: readTestingValuesFromDataFile()");
+            System.out.println("File " + filename + " couldn't be found: readTestingValuesFromDataFile()");
         }
         return testingData;
+    }
+
+    protected static void setTrainingParameters(svm_parameter TrainingParameters) {
+        TrainingParameters.svm_type = svm_parameter.C_SVC;
+        TrainingParameters.kernel_type = svm_parameter.LINEAR;
+        TrainingParameters.degree = 1;
+        TrainingParameters.gamma = 1;
+        TrainingParameters.coef0 = 0;
+        TrainingParameters.C = 1;
+        TrainingParameters.nu = 0.5;
+        TrainingParameters.p = 0.1;
+        TrainingParameters.cache_size = 200;
+        TrainingParameters.eps = 0.001;
+        TrainingParameters.shrinking = 1;
+        TrainingParameters.probability = 0;
+        TrainingParameters.weight = new double[1];
+    }
+
+    protected static svm_model trainSVMAndGetModel(String filename) throws IOException {
+        svm_problem TrainingData = createLIBSVMProblemFromDataFile(filename);
+        svm_parameter TrainingParameters = new svm_parameter();
+        setTrainingParameters(TrainingParameters);
+        svm_model SVMModel = svm.svm_train(TrainingData, TrainingParameters);
+        String fileNameString = "data/" + filename + ".model";
+        svm.svm_save_model(fileNameString, SVMModel);
+        return SVMModel;
     }
 
 }
