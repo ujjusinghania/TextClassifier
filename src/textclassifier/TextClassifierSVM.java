@@ -102,32 +102,37 @@ public class TextClassifierSVM {
 //            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
 //        }
 
-//        try {
-//            dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
-//        } catch (IOException | InvalidFormatException ex) {
-//            System.out.println("Couldn't run the method: createDataDumpFromExcelSheet(): " + ex);
-//        }
-
-//        try {
-//        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
-//        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
-//
-//        for (int i = 0; i < numberOfClassTypes; i++) {
-//            SVMModels[i] = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
-//        }
-
-        svm_model hello = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
-        svm_model[] SVMModels = new svm_model[svm.svm_get_nr_class(hello)];
-
-        for (int i = 0; i < SVMModels.length; i++) {
-            SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
+        try {
+            dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
+        } catch (IOException | InvalidFormatException ex) {
+            System.out.println("Couldn't run the method: createDataDumpFromExcelSheet(): " + ex);
         }
 
-        HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile("libsvmDataTest.txt");
+//        try {
+
+
+// ADD PROVISION FOR WHEN THERE ARE JUST 2 CLASSES.
+
+        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
+        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
+
+        for (int i = 0; i < numberOfClassTypes; i++) {
+            SVMModels[i] = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+        }
+
+//        svm_model hello = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
+//        svm_model[] SVMModels = new svm_model[79];
+//
+//        for (int i = 0; i < SVMModels.length; i++) {
+//            SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
+//        }
+
+        svm_problem testingDataFile = createLIBSVMProblemFromDataFile("libsvmDataTest.txt", 0);
         double correctPredictions = 0;
         ArrayList<Double> predictionList = new ArrayList<>();
 
-        for (svm_node[] testingValue : testingDataFile.keySet()) {
+        for (int testingValueIndex = 0; testingValueIndex < testingDataFile.x.length; testingValueIndex++) {
+            svm_node[] testingValue = testingDataFile.x[testingValueIndex];
             ArrayList<Double> probabilityArrayList = new ArrayList<Double>();
             for (svm_model SVMModel : SVMModels) {
 
@@ -166,7 +171,7 @@ public class TextClassifierSVM {
                 }
             }
 
-            if (Objects.equals(maxProbabilityValueIndex, testingDataFile.get(testingValue))) {
+            if (Objects.equals(maxProbabilityValueIndex, testingDataFile.y[testingValueIndex])) {
                 correctPredictions += 1;
             }
             predictionList.add(maxProbabilityValueIndex);
@@ -178,36 +183,6 @@ public class TextClassifierSVM {
 //       } catch (Exception ex) {
 //            System.out.println("Caught an exception: main(): " + ex);
 //        }
-    }
-
-    protected static HashMap<svm_node[], Double> readTestingValuesFromDataFile(String filename) throws IOException {
-        HashMap<svm_node[], Double> testingData = new HashMap<>();
-        try {
-            FileReader fileReader = new FileReader("data/" + filename);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            String fileLine;
-
-            while ((fileLine = bufferedReader.readLine()) != null) {
-
-                String[] dataValues = fileLine.split(" ");
-
-                double yValue = Double.parseDouble(dataValues[0]);
-                svm_node[] rowValue = new svm_node[dataValues.length - 1];
-//
-                for (int i = 1; i < dataValues.length; i++) {
-                    String dataPoint = dataValues[i];
-                    String[] dataPointValues = dataPoint.split(":");
-                    svm_node nodeValue = new svm_node();
-                    nodeValue.index = Integer.parseInt(dataPointValues[0]);
-                    nodeValue.value = Double.parseDouble(dataPointValues[1]);
-                    rowValue[i - 1] = nodeValue;
-                }
-                testingData.put(rowValue, yValue);
-            }
-        } catch (FileNotFoundException ex) {
-            System.out.println("File " + filename + " couldn't be found: readTestingValuesFromDataFile()");
-        }
-        return testingData;
     }
 
     protected static void setTrainingParameters(svm_parameter TrainingParameters) {
