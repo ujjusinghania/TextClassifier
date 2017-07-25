@@ -5,7 +5,6 @@
  */
 package textclassifier;
 
-import com.sun.javafx.geom.AreaOp;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -96,12 +95,12 @@ public class TextClassifierSVM {
         // TODO code application logic here
         LIBSVMFormatDataCreator dataCreator = new LIBSVMFormatDataCreator();
 
-        try {
-            String[] folders = {"business", "politics", "entertainment", "sport", "tech"};
-            dataCreator.createDataDumpFromTxtFolder(folders);
-        } catch (IOException ex) {
-            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
-        }
+//        try {
+//            String[] folders = {"business", "politics", "entertainment", "sport", "tech"};
+//            dataCreator.createDataDumpFromTxtFolder(folders);
+//        } catch (IOException ex) {
+//            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
+//        }
 
 //        try {
 //            dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
@@ -110,11 +109,18 @@ public class TextClassifierSVM {
 //        }
 
 //        try {
-        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
-        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
+//        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
+//        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
+//
+//        for (int i = 0; i < numberOfClassTypes; i++) {
+//            SVMModels[i] = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+//        }
 
-        for (int i = 0; i < numberOfClassTypes; i++) {
-            SVMModels[i] = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+        svm_model hello = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
+        svm_model[] SVMModels = new svm_model[svm.svm_get_nr_class(hello)];
+
+        for (int i = 0; i < SVMModels.length; i++) {
+            SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
         }
 
         HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile("libsvmDataTest.txt");
@@ -124,18 +130,32 @@ public class TextClassifierSVM {
         for (svm_node[] testingValue : testingDataFile.keySet()) {
             ArrayList<Double> probabilityArrayList = new ArrayList<Double>();
             for (svm_model SVMModel : SVMModels) {
+
                 double[] probabilityEstimates = new double[svm.svm_get_nr_class(SVMModel)];
                 svm.svm_predict_probability(SVMModel, testingValue, probabilityEstimates);
+
                 int[] labels = new int[probabilityEstimates.length];
                 svm.svm_get_labels(SVMModel, labels);
-                probabilityArrayList.add(probabilityEstimates[0]);
-                    for (int i = 0; i <  probabilityEstimates.length; i++) {
+
+                boolean valueAdded = false;
+
+                for (int i = 0; i < probabilityEstimates.length; i++) {
                     System.out.print(labels[i] + ":" + probabilityEstimates[i] + " ");
+                    if (labels[i] == 1) {
+                        probabilityArrayList.add(probabilityEstimates[i]);
+                        valueAdded = true;
+                        break;
                     }
-                    System.out.println("");
+                }
+
+                if (!valueAdded) {
+                    probabilityArrayList.add(0.0);
+                }
+
+                System.out.println("");
 
             }
-System.out.println("--------");
+            System.out.println("--------");
             Double maxProbabilityValue = probabilityArrayList.get(0);
             double maxProbabilityValueIndex = 1;
 

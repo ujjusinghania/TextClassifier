@@ -6,11 +6,9 @@
 package textclassifier;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -22,8 +20,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class LIBSVMFormatDataCreator {
 
-    // A word frequency map for the last document or row of excel sheet that was read. 
-    private Map<Integer, Integer> wordFrequencyMap;
     private Map<String, Integer> classificationMap;
     // Universal Map to make sure that the same word in different titles have the same index in the resultant data set.
     private HashMap<String, Integer> wordIndexMap = new HashMap<String, Integer>();
@@ -31,13 +27,14 @@ public class LIBSVMFormatDataCreator {
     private Integer wordIndexSize = 1;
 
     /**
-     * splitString() - Function that creates a word frequency map for the
-     * provided string and stores it in wordFrequencyMap. returnType: Void.
-     * parameters: String fileLine - .
+     * splitStringAndMakeWordFrequencyMap() - Function that creates a word frequency map for the
+ provided string and stores it in wordFrequencyMap. returnType:
+     * HashMap<Integer, Integer> - the wordFrequencyMap. parameters: String
+     * fileLine - String that will be converted into a wordFrequencyMap.
      */
-    private void splitString(String fileLine) {
+    private HashMap<Integer, Integer> splitStringAndMakeWordFrequencyMap(String fileLine) {
 
-        wordFrequencyMap = new TreeMap<Integer, Integer>();
+        HashMap<Integer, Integer> wordFrequencyMap = new HashMap<Integer, Integer>();
         String[] words = fileLine.split(" ");
         TextPreprocessor textCleaner = new TextPreprocessor();
 
@@ -54,12 +51,14 @@ public class LIBSVMFormatDataCreator {
                 wordFrequencyMap.put(wordIndex, wordFrequencyMap.get(wordIndex) + 1);
             }
         }
+        return wordFrequencyMap;
     }
 
     /**
      * createDataDumpFromExcelSheet() - Function that creates a word frequency
      * chart for all data in an Excel Sheet. returnType: Void. parameters:
-     * String filename - .
+     * String filename - the name of the .xlsx file that will be read and
+     * converted to libsvm data format.
      */
     public void createDataDumpFromExcelSheet(String filename) throws InvalidFormatException, IOException {
 
@@ -88,8 +87,8 @@ public class LIBSVMFormatDataCreator {
             }
 
             for (String key : excelSheetDatabase.keySet()) {
-                splitString(key);
-                createLIBSVMDataFile(excelSheetDatabase.get(key));
+                HashMap<Integer, Integer> wordFrequencyMap = splitStringAndMakeWordFrequencyMap(key);
+                createLIBSVMDataFile(excelSheetDatabase.get(key), wordFrequencyMap);
             }
 
         } catch (InvalidFormatException ex) {
@@ -101,52 +100,54 @@ public class LIBSVMFormatDataCreator {
     /**
      * createDataDumpFromTxtFolder() - Function that creates a word frequency
      * chart for all the .txt files in the /data folder. returnType: Void.
-     * parameters: String folder - specifices folder for which datadump is
+     * parameters: String folder - specifies folder for which datadump is
      * created.
      */
     public void createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
-        
-        int classTypeIdentifier = 1; 
+
+        int classTypeIdentifier = 1;
         classificationMap = new HashMap<String, Integer>();
-        
+
         for (int i = 0; i < folders.length; i++) {
 
             String folder = folders[i];
-            
+
             // Change path extension to location of working directory/folder containing all files.
             File[] files = new File("data/" + folder).listFiles();
-            
+
             if (classificationMap.containsKey(folders[i]) == false) {
-                    classificationMap.put(folders[i], classTypeIdentifier);
-                    classTypeIdentifier += 1;
-                }
+                classificationMap.put(folders[i], classTypeIdentifier);
+                classTypeIdentifier += 1;
+            }
 
             for (File file : files) {
-                if (file.isFile()) {
-                    
-                    String fileName = file.getAbsolutePath();
-                    String fileLine;
-                    String textFile = ""; 
-
-                    try {
-
-                        FileReader fileReader = new FileReader(fileName);
-                        BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-                        while ((fileLine = bufferedReader.readLine()) != null) {
-                            textFile += fileLine;
-                        }
-
-                        bufferedReader.close();
-                        
-                        splitString(textFile); // have it return wordFrequencyMap
-                        
-                        createLIBSVMDataFile(classificationMap.get(folders[i])); // pass in wordFrequencyMap as a parameter
-
-                    } catch (FileNotFoundException ex) {
-                        System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
-                    }
+                if (!file.isFile()) {
+                    continue;
                 }
+
+                String fileName = file.getAbsolutePath();
+                String fileLine;
+                String textFile = "";
+
+                try {
+
+                    FileReader fileReader = new FileReader(fileName);
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+                    while ((fileLine = bufferedReader.readLine()) != null) {
+                        textFile += fileLine;
+                    }
+
+                    bufferedReader.close();
+
+                    HashMap<Integer, Integer> wordFrequencyMap = splitStringAndMakeWordFrequencyMap(textFile); // have it return wordFrequencyMap
+
+                    createLIBSVMDataFile(classificationMap.get(folders[i]), wordFrequencyMap); // pass in wordFrequencyMap as a parameter
+
+                } catch (FileNotFoundException ex) {
+                    System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
+                }
+
             }
         }
     }
@@ -154,9 +155,11 @@ public class LIBSVMFormatDataCreator {
     /**
      * createLIBSVMDataFile() - Function that creates a text file in the LIBSVM
      * format to train the SVM classifier. returnType: Void. parameters: Integer
-     * classLabel - specifies the label for the dataPoint.
+     * classLabel - specifies the label for the dataPoint,
+     * HashMap<Integer, Integer> - the wordFrequencyMap that is to be written to
+     * the file.
      */
-    private void createLIBSVMDataFile(Integer classLabel) throws IOException {
+    private void createLIBSVMDataFile(Integer classLabel, HashMap<Integer, Integer> wordFrequencyMap) throws IOException {
         if (classLabel == null) {
             classLabel = 0;
         }
