@@ -30,11 +30,10 @@ public class LIBSVMFormatDataCreator {
     // Size of the wordIndexMap to keep track of the index to be assigned to the next new word. 
     private Integer wordIndexSize = 1;
 
-    /*
-    splitString() - Function that creates a word frequency map for the provided string and stores
-    it in wordFrequencyMap. 
-    returnType: Void. 
-    parameters: String fileLine - .
+    /**
+     * splitString() - Function that creates a word frequency map for the
+     * provided string and stores it in wordFrequencyMap. returnType: Void.
+     * parameters: String fileLine - .
      */
     private void splitString(String fileLine) {
 
@@ -57,11 +56,10 @@ public class LIBSVMFormatDataCreator {
         }
     }
 
-    /*
-    createDataDumpFromExcelSheet() - Function that creates a word frequency chart for all data in an
-    Excel Sheet. 
-    returnType: Void. 
-    parameters: String filename - .
+    /**
+     * createDataDumpFromExcelSheet() - Function that creates a word frequency
+     * chart for all data in an Excel Sheet. returnType: Void. parameters:
+     * String filename - .
      */
     public void createDataDumpFromExcelSheet(String filename) throws InvalidFormatException, IOException {
 
@@ -72,7 +70,7 @@ public class LIBSVMFormatDataCreator {
 
             Map<String, Integer> excelSheetDatabase = new HashMap<String, Integer>();
             classificationMap = new HashMap<String, Integer>();
-            Integer classTypeIndentifier = 1;
+            Integer classTypeIdentifier = 1;
 
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) {
@@ -83,8 +81,8 @@ public class LIBSVMFormatDataCreator {
                     continue;
                 }
                 if (classificationMap.containsKey(classType) == false) {
-                    classificationMap.put(classType, classTypeIndentifier);
-                    classTypeIndentifier += 1;
+                    classificationMap.put(classType, classTypeIdentifier);
+                    classTypeIdentifier += 1;
                 }
                 excelSheetDatabase.put(row.getCell(1).toString(), classificationMap.get(classType));
             }
@@ -100,54 +98,63 @@ public class LIBSVMFormatDataCreator {
 
     }
 
-    /*
-    createDataDumpFromTxtFolder() - Function that creates a word frequency chart for all the 
-    .txt files in the /data folder. 
-    returnType: Void. 
-    parameters: String folder - specifices folder for which datadump is created.
+    /**
+     * createDataDumpFromTxtFolder() - Function that creates a word frequency
+     * chart for all the .txt files in the /data folder. returnType: Void.
+     * parameters: String folder - specifices folder for which datadump is
+     * created.
      */
-    public void createDataDumpFromTxtFolder(String folder) throws FileNotFoundException, IOException {
+    public void createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
+        
+        int classTypeIdentifier = 1; 
+        classificationMap = new HashMap<String, Integer>();
+        
+        for (int i = 0; i < folders.length; i++) {
 
-        // Change path extension to location of working directory/folder containing all files.
-        File[] files = new File("data/" + folder).listFiles();
+            String folder = folders[i];
+            
+            // Change path extension to location of working directory/folder containing all files.
+            File[] files = new File("data/" + folder).listFiles();
+            
+            if (classificationMap.containsKey(folders[i]) == false) {
+                    classificationMap.put(folders[i], classTypeIdentifier);
+                    classTypeIdentifier += 1;
+                }
 
-        for (File file : files) {
-            if (file.isFile()) {
-                String fileName = file.getAbsolutePath();
-                
-                String fileLine;
+            for (File file : files) {
+                if (file.isFile()) {
+                    
+                    String fileName = file.getAbsolutePath();
+                    String fileLine;
+                    String textFile = ""; 
 
-                try {
+                    try {
 
-                    FileReader fileReader = new FileReader(fileName);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                        FileReader fileReader = new FileReader(fileName);
+                        BufferedReader bufferedReader = new BufferedReader(fileReader);
 
-                    while ((fileLine = bufferedReader.readLine()) != null) {
-                        System.out.println(fileLine);
-                        splitString(fileLine);
+                        while ((fileLine = bufferedReader.readLine()) != null) {
+                            textFile += fileLine;
+                        }
+
+                        bufferedReader.close();
+                        
+                        splitString(textFile); // have it return wordFrequencyMap
+                        
+                        createLIBSVMDataFile(classificationMap.get(folders[i])); // pass in wordFrequencyMap as a parameter
+
+                    } catch (FileNotFoundException ex) {
+                        System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
                     }
-
-                    Set<Integer> keys = wordFrequencyMap.keySet();
-                    keys.forEach((key) -> {
-                        System.out.println(key + ": " + wordFrequencyMap.get(key));
-                    });
-
-                    bufferedReader.close();
-
-                    createLIBSVMDataFile(0);
-
-                } catch (FileNotFoundException ex) {
-                    System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
                 }
             }
         }
     }
 
-    /*
-    createLIBSVMDataFile() - Function that creates a text file in the LIBSVM format
-    to train the SVM classifier. 
-    returnType: Void. 
-    parameters: Integer classLabel - specifies the label for the dataPoint.    
+    /**
+     * createLIBSVMDataFile() - Function that creates a text file in the LIBSVM
+     * format to train the SVM classifier. returnType: Void. parameters: Integer
+     * classLabel - specifies the label for the dataPoint.
      */
     private void createLIBSVMDataFile(Integer classLabel) throws IOException {
         if (classLabel == null) {
@@ -166,6 +173,10 @@ public class LIBSVMFormatDataCreator {
         bufferedWriter.write('\n');
         bufferedWriter.flush();
         bufferedWriter.close();
+    }
+
+    int getNumberOfClassTypes() {
+        return classificationMap.size();
     }
 
 }

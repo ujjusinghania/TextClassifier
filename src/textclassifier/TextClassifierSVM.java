@@ -5,16 +5,14 @@
  */
 package textclassifier;
 
+import com.sun.javafx.geom.AreaOp;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
-import javax.print.attribute.standard.MediaSize;
 import libsvm.svm;
 import libsvm.svm_model;
 import libsvm.svm_node;
@@ -28,13 +26,12 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
  */
 public class TextClassifierSVM {
 
-    /*
-    createLIBSVMProblemFromDataFile() - Function that creates a svm_problem object from a data file in
-    the libsvm data format. 
-    returnType: Void. 
-    parameters: Null.
+    /**
+     * createLIBSVMProblemFromDataFile() - Function that creates a svm_problem
+     * object from a data file in the libsvm data format. returnType: Void.
+     * parameters: Null.
      */
-    protected static svm_problem createLIBSVMProblemFromDataFile(String filename) throws FileNotFoundException, IOException {
+    protected static svm_problem createLIBSVMProblemFromDataFile(String filename, int classType) throws FileNotFoundException, IOException {
         svm_problem TrainingData = new svm_problem();
 
         ArrayList<svm_node[]> xValues = new ArrayList<>();
@@ -48,7 +45,17 @@ public class TextClassifierSVM {
 
                 String[] dataValues = fileLine.split(" ");
 
-                yValues.add(Double.parseDouble(dataValues[0]));
+                double classTypeValueForNode = Double.parseDouble(dataValues[0]);
+
+                if (classType != 0) {
+                    if (classType == classTypeValueForNode) {
+                        classTypeValueForNode = 1;
+                    } else {
+                        classTypeValueForNode = -1;
+                    }
+                }
+
+                yValues.add(classTypeValueForNode);
                 svm_node[] rowValue = new svm_node[dataValues.length - 1];
 
                 for (int i = 1; i < dataValues.length; i++) {
@@ -85,41 +92,72 @@ public class TextClassifierSVM {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InvalidFormatException {
         // TODO code application logic here
         LIBSVMFormatDataCreator dataCreator = new LIBSVMFormatDataCreator();
 
-//        try {
-//            testData.createDataDumpFromTxtFolder("business");
-//        } catch (IOException ex) {
-//            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
-//        }
+        try {
+            String[] folders = {"business", "politics", "entertainment", "sport", "tech"};
+            dataCreator.createDataDumpFromTxtFolder(folders);
+        } catch (IOException ex) {
+            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
+        }
+
 //        try {
 //            dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
 //        } catch (IOException | InvalidFormatException ex) {
 //            System.out.println("Couldn't run the method: createDataDumpFromExcelSheet(): " + ex);
 //        }
-        try {
 
-            svm_model SVMModel = TextClassifierSVM.trainSVMAndSaveModel("a1a.txt");
+//        try {
+        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
+        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
 
-            HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile("a1aT.txt");
-            double correctPredictions = 0;
-            ArrayList<Double> predictionList = new ArrayList<>();
-            for (svm_node[] testingValue : testingDataFile.keySet()) {
-                Double prediction = svm.svm_predict(SVMModel, testingValue);
-                if (Objects.equals(prediction, testingDataFile.get(testingValue))) {
-                    correctPredictions += 1;
+        for (int i = 0; i < numberOfClassTypes; i++) {
+            SVMModels[i] = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+        }
+
+        HashMap<svm_node[], Double> testingDataFile = readTestingValuesFromDataFile("libsvmDataTest.txt");
+        double correctPredictions = 0;
+        ArrayList<Double> predictionList = new ArrayList<>();
+
+        for (svm_node[] testingValue : testingDataFile.keySet()) {
+            ArrayList<Double> probabilityArrayList = new ArrayList<Double>();
+            for (svm_model SVMModel : SVMModels) {
+                double[] probabilityEstimates = new double[svm.svm_get_nr_class(SVMModel)];
+                svm.svm_predict_probability(SVMModel, testingValue, probabilityEstimates);
+                int[] labels = new int[probabilityEstimates.length];
+                svm.svm_get_labels(SVMModel, labels);
+                probabilityArrayList.add(probabilityEstimates[0]);
+                    for (int i = 0; i <  probabilityEstimates.length; i++) {
+                    System.out.print(labels[i] + ":" + probabilityEstimates[i] + " ");
+                    }
+                    System.out.println("");
+
+            }
+System.out.println("--------");
+            Double maxProbabilityValue = probabilityArrayList.get(0);
+            double maxProbabilityValueIndex = 1;
+
+            for (int i = 0; i < probabilityArrayList.size(); i++) {
+                if (maxProbabilityValue < probabilityArrayList.get(i)) {
+                    maxProbabilityValue = probabilityArrayList.get(i);
+                    maxProbabilityValueIndex = i + 1;
                 }
-                predictionList.add(prediction);
             }
 
-            Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
-            System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
-
-        } catch (Exception ex) {
-            System.out.println("Caught an exception: main(): " + ex);
+            if (Objects.equals(maxProbabilityValueIndex, testingDataFile.get(testingValue))) {
+                correctPredictions += 1;
+            }
+            predictionList.add(maxProbabilityValueIndex);
         }
+
+        Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
+        System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
+
+//       } catch (Exception ex) {
+//            System.out.println("Caught an exception: main(): " + ex);
+//        }
     }
 
     protected static HashMap<svm_node[], Double> readTestingValuesFromDataFile(String filename) throws IOException {
@@ -161,19 +199,18 @@ public class TextClassifierSVM {
         TrainingParameters.C = 1;
         TrainingParameters.nu = 0.5;
         TrainingParameters.p = 0.1;
-        TrainingParameters.cache_size = 200;
+        TrainingParameters.cache_size = 100;
         TrainingParameters.eps = 0.001;
         TrainingParameters.shrinking = 1;
-        TrainingParameters.probability = 0;
-        TrainingParameters.weight = new double[1];
+        TrainingParameters.probability = 1;
     }
 
-    protected static svm_model trainSVMAndGetModel(String filename) throws IOException {
-        svm_problem TrainingData = createLIBSVMProblemFromDataFile(filename);
+    protected static svm_model trainSVMAndSaveModel(String filename, int classType) throws IOException {
+        svm_problem TrainingData = createLIBSVMProblemFromDataFile(filename, classType);
         svm_parameter TrainingParameters = new svm_parameter();
         setTrainingParameters(TrainingParameters);
         svm_model SVMModel = svm.svm_train(TrainingData, TrainingParameters);
-        String fileNameString = "data/" + filename + ".model";
+        String fileNameString = "data/" + classType + filename + ".model";
         svm.svm_save_model(fileNameString, SVMModel);
         return SVMModel;
     }
