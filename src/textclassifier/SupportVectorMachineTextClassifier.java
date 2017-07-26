@@ -23,7 +23,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
  *
  * @author ujjwalsinghania
  */
-public class TextClassifierSVM {
+public class SupportVectorMachineTextClassifier {
 
     /**
      * createLIBSVMProblemFromDataFile() - Function that creates a svm_problem
@@ -118,10 +118,10 @@ public class TextClassifierSVM {
         svm_model[] SVMModels = new svm_model[numberOfClassTypes];
 
         for (int i = 0; i < numberOfClassTypes; i++) {
-            SVMModels[i] = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+            SVMModels[i] = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
         }
 
-//        svm_model hello = TextClassifierSVM.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
+//        svm_model hello = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
 //        svm_model[] SVMModels = new svm_model[79];
 //
 //        for (int i = 0; i < SVMModels.length; i++) {
