@@ -9,6 +9,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -27,28 +28,33 @@ public class LIBSVMFormatDataCreator {
     private Integer wordIndexSize = 1;
 
     /**
-     * splitStringAndMakeWordFrequencyMap() - Function that creates a word frequency map for the
- provided string and stores it in wordFrequencyMap. returnType:
-     * HashMap<Integer, Integer> - the wordFrequencyMap. parameters: String
-     * fileLine - String that will be converted into a wordFrequencyMap.
+     * splitStringAndMakeWordFrequencyMap() - Function that creates a word
+     * frequency map for the provided string and stores it in wordFrequencyMap.
+     * returnType: HashMap<Integer, Integer> - the wordFrequencyMap. parameters:
+     * String fileLine - String that will be converted into a wordFrequencyMap.
      */
-    private HashMap<Integer, Integer> splitStringAndMakeWordFrequencyMap(String fileLine) {
+    private TreeMap<Integer, Integer> splitStringAndMakeWordFrequencyMap(String fileLine) {
 
-        HashMap<Integer, Integer> wordFrequencyMap = new HashMap<Integer, Integer>();
+        TreeMap<Integer, Integer> wordFrequencyMap = new TreeMap<Integer, Integer>();
         String[] words = fileLine.split(" ");
         TextPreprocessor textCleaner = new TextPreprocessor();
 
         for (String word : words) {
             String cleanWord = textCleaner.cleanString(word);
-            if (wordIndexMap.containsKey(cleanWord) == false) {
-                wordIndexMap.put(cleanWord, wordIndexSize);
-                wordIndexSize += 1;
-            }
-            Integer wordIndex = wordIndexMap.get(cleanWord);
-            if (wordFrequencyMap.containsKey(wordIndex) == false) {
-                wordFrequencyMap.put(wordIndex, 1);
-            } else {
-                wordFrequencyMap.put(wordIndex, wordFrequencyMap.get(wordIndex) + 1);
+
+            if (cleanWord != null) {
+
+                if (wordIndexMap.containsKey(cleanWord) == false) {
+                    wordIndexMap.put(cleanWord, wordIndexSize);
+                    wordIndexSize += 1;
+                }
+
+                Integer wordIndex = wordIndexMap.get(cleanWord);
+                if (wordFrequencyMap.containsKey(wordIndex) == false) {
+                    wordFrequencyMap.put(wordIndex, 1);
+                } else {
+                    wordFrequencyMap.put(wordIndex, wordFrequencyMap.get(wordIndex) + 1);
+                }
             }
         }
         return wordFrequencyMap;
@@ -87,7 +93,7 @@ public class LIBSVMFormatDataCreator {
             }
 
             for (String key : excelSheetDatabase.keySet()) {
-                HashMap<Integer, Integer> wordFrequencyMap = splitStringAndMakeWordFrequencyMap(key);
+                TreeMap<Integer, Integer> wordFrequencyMap = splitStringAndMakeWordFrequencyMap(key);
                 createLIBSVMDataFile(excelSheetDatabase.get(key), wordFrequencyMap);
             }
 
@@ -140,9 +146,9 @@ public class LIBSVMFormatDataCreator {
 
                     bufferedReader.close();
 
-                    HashMap<Integer, Integer> wordFrequencyMap = splitStringAndMakeWordFrequencyMap(textFile); // have it return wordFrequencyMap
+                    TreeMap<Integer, Integer> wordFrequencyMap = splitStringAndMakeWordFrequencyMap(textFile);
 
-                    createLIBSVMDataFile(classificationMap.get(folders[i]), wordFrequencyMap); // pass in wordFrequencyMap as a parameter
+                    createLIBSVMDataFile(classificationMap.get(folders[i]), wordFrequencyMap);
 
                 } catch (FileNotFoundException ex) {
                     System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
@@ -159,7 +165,7 @@ public class LIBSVMFormatDataCreator {
      * HashMap<Integer, Integer> - the wordFrequencyMap that is to be written to
      * the file.
      */
-    private void createLIBSVMDataFile(Integer classLabel, HashMap<Integer, Integer> wordFrequencyMap) throws IOException {
+    private void createLIBSVMDataFile(Integer classLabel, TreeMap<Integer, Integer> wordFrequencyMap) throws IOException {
         if (classLabel == null) {
             classLabel = 0;
         }

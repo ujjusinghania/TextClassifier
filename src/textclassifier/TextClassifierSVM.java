@@ -27,10 +27,13 @@ public class TextClassifierSVM {
 
     /**
      * createLIBSVMProblemFromDataFile() - Function that creates a svm_problem
-     * object from a data file in the libsvm data format. returnType: Void.
-     * parameters: Null.
+     * object from a data file in the libsvm data format.
+     * @param filename - name of file whose data will be converted to a svm_problem
+     * @param preserveClass - class to be kept for current one-vs-all svm_problem.
+     * @return svm_problem.
+     * @throws java.io.FileNotFoundException
      */
-    protected static svm_problem createLIBSVMProblemFromDataFile(String filename, int classType) throws FileNotFoundException, IOException {
+    protected static svm_problem createLIBSVMProblemFromDataFile(String filename, int preserveClass) throws FileNotFoundException, IOException {
         svm_problem TrainingData = new svm_problem();
 
         ArrayList<svm_node[]> xValues = new ArrayList<>();
@@ -46,8 +49,8 @@ public class TextClassifierSVM {
 
                 double classTypeValueForNode = Double.parseDouble(dataValues[0]);
 
-                if (classType != 0) {
-                    if (classType == classTypeValueForNode) {
+                if (preserveClass != 0) {
+                    if (preserveClass == classTypeValueForNode) {
                         classTypeValueForNode = 1;
                     } else {
                         classTypeValueForNode = -1;
@@ -90,18 +93,19 @@ public class TextClassifierSVM {
 
     /**
      * @param args the command line arguments
+     * @throws java.io.IOException
+     * @throws org.apache.poi.openxml4j.exceptions.InvalidFormatException
      */
     public static void main(String[] args) throws IOException, InvalidFormatException {
         // TODO code application logic here
         LIBSVMFormatDataCreator dataCreator = new LIBSVMFormatDataCreator();
 
 //        try {
-//            String[] folders = {"business", "politics", "entertainment", "sport", "tech"};
+//            String[] folders = {"business", "politics", "entertainment", "tech", "athletics", "cricket", "football", "rugby", "tennis"};
 //            dataCreator.createDataDumpFromTxtFolder(folders);
 //        } catch (IOException ex) {
 //            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
 //        }
-
         try {
             dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
         } catch (IOException | InvalidFormatException ex) {
@@ -109,10 +113,7 @@ public class TextClassifierSVM {
         }
 
 //        try {
-
-
 // ADD PROVISION FOR WHEN THERE ARE JUST 2 CLASSES.
-
         int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
         svm_model[] SVMModels = new svm_model[numberOfClassTypes];
 
@@ -126,7 +127,6 @@ public class TextClassifierSVM {
 //        for (int i = 0; i < SVMModels.length; i++) {
 //            SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
 //        }
-
         svm_problem testingDataFile = createLIBSVMProblemFromDataFile("libsvmDataTest.txt", 0);
         double correctPredictions = 0;
         ArrayList<Double> predictionList = new ArrayList<>();
@@ -175,15 +175,16 @@ public class TextClassifierSVM {
                 correctPredictions += 1;
             }
             predictionList.add(maxProbabilityValueIndex);
-        }
 
-        Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
-        System.out.println("--------------------------------" + '\n' + "Overall Accuracy = " + accuracy + "%");
+            Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
+            System.out.println("--------------------------------" + '\n' + "Got " + (int) correctPredictions + " out of " + predictionList.size() + '\n' + "Overall Accuracy = " + accuracy + "%");
 
 //       } catch (Exception ex) {
 //            System.out.println("Caught an exception: main(): " + ex);
 //        }
+        }
     }
+    
 
     protected static void setTrainingParameters(svm_parameter TrainingParameters) {
         TrainingParameters.svm_type = svm_parameter.C_SVC;
@@ -200,6 +201,14 @@ public class TextClassifierSVM {
         TrainingParameters.probability = 1;
     }
 
+    /**
+     * trainSVMAndSaveModel() - Function that trains the SVM and creates and saves the corresponding
+     * svm_model.
+     * @param filename - name of file whose data will be converted to a svm_problem
+     * @param classType - class to be kept for current one-vs-all svm_problem.
+     * @return svm_model.
+     * @throws java.io.IOException;
+     */
     protected static svm_model trainSVMAndSaveModel(String filename, int classType) throws IOException {
         svm_problem TrainingData = createLIBSVMProblemFromDataFile(filename, classType);
         svm_parameter TrainingParameters = new svm_parameter();
