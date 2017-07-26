@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -70,16 +71,19 @@ public class NeurophNeuralNetworkDataCreator {
     private Double[] convertToBinaryArray(int classTypeIdentifier, int numberOfClasses) {
         String[] bits = Integer.toBinaryString(classTypeIdentifier).split("");
         Double[] bitPattern = new Double[numberOfClasses];
-        for (int index = 0; index < bits.length; index++) {
-            bitPattern[index] = Double.parseDouble(bits[index]);
+        java.util.Arrays.fill(bitPattern, 0.0);
+        int differenceInLength = bitPattern.length - bits.length;
+        for (int index = 0; index < bits.length ; index++) {
+            bitPattern[index+differenceInLength] = Double.parseDouble(bits[index]);
         }
         return bitPattern;
     }
     
     private Double[] convertToDoubleArray(TreeMap<Integer, Integer> textFile, int numberOfWords) {
-        Double[] wordArray = new Double[numberOfWords+1];
+        Double[] wordArray = new Double[numberOfWords];
+        java.util.Arrays.fill(wordArray, 0.0);
         for (int key: textFile.keySet()) {
-            wordArray[key] = (double)textFile.get(key); 
+            wordArray[key-1] = (double)textFile.get(key); 
         }
         return wordArray;
     }
