@@ -8,12 +8,8 @@ package textclassifier;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  *
@@ -32,39 +28,22 @@ public class LIBSVMFormatDataCreator {
      */
     public void createDataDumpFromExcelSheet(String filename) throws InvalidFormatException, IOException {
 
-        try {
+        int classTypeIdentifier = 1;
+        classificationMap = new HashMap<String, Integer>();
 
-            XSSFWorkbook wb = new XSSFWorkbook(new File("data/" + filename));
-            XSSFSheet sheet = wb.getSheetAt(0);
+        HashMap<String, String> dataFile = textUtilities.createDataDumpFromExcelSheet(filename);
+        HashMap<TreeMap<Integer, Integer>, Integer> libsvmData = new HashMap<TreeMap<Integer, Integer>, Integer>();
 
-            Map<String, Integer> excelSheetDatabase = new HashMap<String, Integer>();
-            classificationMap = new HashMap<String, Integer>();
-            Integer classTypeIdentifier = 1;
-
-            for (Row row : sheet) {
-                if (row.getRowNum() == 0) {
-                    continue;
-                }
-                String classType = row.getCell(4).toString();
-                if (classType == null) {
-                    continue;
-                }
-                if (classificationMap.containsKey(classType) == false) {
-                    classificationMap.put(classType, classTypeIdentifier);
-                    classTypeIdentifier += 1;
-                }
-                excelSheetDatabase.put(row.getCell(1).toString(), classificationMap.get(classType));
+        for (String textFile : dataFile.keySet()) {
+            String classLabel = dataFile.get(textFile);
+            if (!classificationMap.containsKey(classLabel)) {
+                classificationMap.put(classLabel, classTypeIdentifier);
+                classTypeIdentifier += 1;
             }
 
-            for (String key : excelSheetDatabase.keySet()) {
-                TreeMap<Integer, Integer> wordFrequencyMap = textUtilities.splitStringAndMakeWordFrequencyMap(key);
-                createLIBSVMDataFile(excelSheetDatabase.get(key), wordFrequencyMap);
-            }
-
-        } catch (InvalidFormatException ex) {
-            System.out.println("Caught an IOException: createDataDumpFromExcelSheet()" + '\n' + "Exception: " + ex);
+            libsvmData.put(textUtilities.splitStringAndMakeWordFrequencyMap(textFile), classificationMap.get(classLabel));
         }
-
+        createLIBSVMDataFile(libsvmData);
     }
 
     /**
@@ -78,48 +57,19 @@ public class LIBSVMFormatDataCreator {
         int classTypeIdentifier = 1;
         classificationMap = new HashMap<String, Integer>();
 
-        for (int i = 0; i < folders.length; i++) {
+        HashMap<String, String> dataFile = textUtilities.createDataDumpFromTxtFolder(folders);
+        HashMap<TreeMap<Integer, Integer>, Integer> libsvmData = new HashMap<TreeMap<Integer, Integer>, Integer>();
 
-            String folder = folders[i];
-
-            // Change path extension to location of working directory/folder containing all files.
-            File[] files = new File("data/" + folder).listFiles();
-
-            if (classificationMap.containsKey(folders[i]) == false) {
-                classificationMap.put(folders[i], classTypeIdentifier);
+        for (String textFile : dataFile.keySet()) {
+            String classLabel = dataFile.get(textFile);
+            if (!classificationMap.containsKey(classLabel)) {
+                classificationMap.put(classLabel, classTypeIdentifier);
                 classTypeIdentifier += 1;
             }
 
-            for (File file : files) {
-                if (!file.isFile()) {
-                    continue;
-                }
-
-                String fileName = file.getAbsolutePath();
-                String fileLine;
-                String textFile = "";
-
-                try {
-
-                    FileReader fileReader = new FileReader(fileName);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-                    while ((fileLine = bufferedReader.readLine()) != null) {
-                        textFile += fileLine;
-                    }
-
-                    bufferedReader.close();
-
-                    TreeMap<Integer, Integer> wordFrequencyMap = textUtilities.splitStringAndMakeWordFrequencyMap(textFile);
-
-                    createLIBSVMDataFile(classificationMap.get(folders[i]), wordFrequencyMap);
-
-                } catch (FileNotFoundException ex) {
-                    System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
-                }
-
-            }
+            libsvmData.put(textUtilities.splitStringAndMakeWordFrequencyMap(textFile), classificationMap.get(classLabel));
         }
+        createLIBSVMDataFile(libsvmData);
     }
 
     /**
@@ -129,21 +79,20 @@ public class LIBSVMFormatDataCreator {
      * HashMap<Integer, Integer> - the wordFrequencyMap that is to be written to
      * the file.
      */
-    private void createLIBSVMDataFile(Integer classLabel, TreeMap<Integer, Integer> wordFrequencyMap) throws IOException {
-        if (classLabel == null) {
-            classLabel = 0;
-        }
+    private void createLIBSVMDataFile(HashMap<TreeMap<Integer, Integer>, Integer> libsvmData) throws IOException {
         String fileNameString = "data/libsvmData.txt";
-        FileWriter fileWriter = new FileWriter(fileNameString, true);
+        FileWriter fileWriter = new FileWriter(fileNameString);
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        for (TreeMap<Integer, Integer> wordFrequencyMap : libsvmData.keySet()) {
 
-        bufferedWriter.write(classLabel + " ");
+            Integer classLabel = libsvmData.get(wordFrequencyMap);
 
-        Set<Integer> keys = wordFrequencyMap.keySet();
-        for (Integer key : keys) {
-            bufferedWriter.write(key + ":" + wordFrequencyMap.get(key) + " ");
+            bufferedWriter.write(classLabel + " ");
+            for (Integer key : wordFrequencyMap.keySet()) {
+                bufferedWriter.write(key + ":" + wordFrequencyMap.get(key) + " ");
+            }
+            bufferedWriter.write('\n');
         }
-        bufferedWriter.write('\n');
         bufferedWriter.flush();
         bufferedWriter.close();
     }
