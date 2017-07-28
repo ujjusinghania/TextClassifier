@@ -34,8 +34,8 @@ public class TextUtilities {
     /**
      * splitStringAndMakeWordFrequencyMap() - Function that creates a word
      * frequency map for the provided string and stores it in wordFrequencyMap.
-     * returnType: HashMap<Integer, Integer> - the wordFrequencyMap. parameters:
-     * String fileLine - String that will be converted into a wordFrequencyMap.
+     * @param fileLine - String that will be converted into a wordFrequencyMap.
+     * @return HashMap<Integer, Integer> - the wordFrequencyMap.
      */
     public TreeMap<Integer, Integer> splitStringAndMakeWordFrequencyMap(String fileLine) {
 
@@ -64,14 +64,17 @@ public class TextUtilities {
     }
 
     /**
-     * createDataDumpFromExcelSheet() - Function that creates a word frequency
-     * chart for all data in an Excel Sheet. returnType: Void. parameters:
-     * String filename - the name of the .xlsx file that will be read and
-     * converted to libsvm data format.
+     * createDataDumpFromExcelSheet() - Function that reads the given excel file and 
+     * creates a HashMap out of it.
+     * @param filename - name of the file.
+     * @return HashMap<TreeMap<Integer, Integer>, Integer> - each key:value pair 
+     * is wordFrequencyMap for excelRow: classLabel.
+     * @throws org.apache.poi.openxml4j.exceptions.InvalidFormatException
+     * @throws java.io.IOException
      */
     public HashMap<TreeMap<Integer, Integer>, Integer> createDataDumpFromExcelSheet(String filename) throws InvalidFormatException, IOException {
 
-        HashMap<String, String> excelSheetDatabase = new HashMap<String, String>();
+        HashMap<String, String> excelSheetDatabase = new HashMap<>();
 
         try {
 
@@ -87,17 +90,17 @@ public class TextUtilities {
             }
 
         } catch (InvalidFormatException ex) {
-            System.out.println("Caught an IOException: createDataDumpFromExcelSheet()" + '\n' + "Exception: " + ex);
+            System.out.println("Caught an InvalidFormatException: createDataDumpFromExcelSheet()" + '\n' + "Exception: " + ex);
         }
         return classifyAndCreateDataFile(excelSheetDatabase);
     }
 
     /**
-     * createDataDumpFromTxtFolder() - Function that creates a word frequency
-     * chart for all the .txt files in the /data folder.
-     *
-     * @param folders
-     * @return
+     * createDataDumpFromTxtFolder() - Function that reads all the .txt files
+     * in the /data folder and creates a HashMap out of it.
+     * @param folders - Array containing the names of the folders.
+     * @return HashMap<TreeMap<Integer, Integer>, Integer> - each key:value pair 
+     * is wordFrequencyMap for file: classLabel.
      * @throws java.io.FileNotFoundException
      */
     public HashMap<TreeMap<Integer, Integer>, Integer> createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
@@ -137,14 +140,14 @@ public class TextUtilities {
         return classifyAndCreateDataFile(foldersDatabase);
     }
 
-    public int getNumberOfWords() {
-        return wordIndexSize - 1;
-    }
-
-    public int getNumberOfClasses() {
-        return classTypeIdentifier - 1;
-    }
-
+    /**
+     * classifyAndCreateDataFile() - Function that processes the given dataFile HashMap,
+     * quantifies the text and classLabels into numbers, and creates a HashMap out of it.
+     * @param dataFile (HashMap<String, String>) - key:value pair = text:classLabel.
+     * @return HashMap<TreeMap<Integer, Integer>, Integer> - each key:value pair 
+     * is wordFrequencyMap for file: classLabel.
+     * @throws IOException
+     */
     private HashMap<TreeMap<Integer, Integer>, Integer> classifyAndCreateDataFile(HashMap<String, String> dataFile) throws IOException {
 
         classificationMap = new HashMap<>();
@@ -162,4 +165,24 @@ public class TextUtilities {
         });
         return finalData;
     }
+    
+    /**
+     * getNumberOfWords() - Function that returns the number of unique words in the 
+     * data set.
+     * @return Integer
+     */
+    public int getNumberOfWords() {
+        return wordIndexSize - 1;
+    }
+
+    /**
+     * getNumberOfClassTypes() - Function that returns the number of class labels in the 
+     * data set.
+     * @return Integer
+     */
+    public int getNumberOfClasses() {
+        return classTypeIdentifier - 1;
+    }
+
+    
 }

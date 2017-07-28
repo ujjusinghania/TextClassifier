@@ -20,18 +20,54 @@ public class NeurophNeuralNetworkDataCreator {
     private int numberOfClasses;
     private int numberOfWords;
 
+    /**
+     * createDataDumpFromExcelSheet() - Function that reads the given excel file and 
+     * creates a neuroph compliant HashMap out of it.
+     * @param filename - name of the file.
+     * @return HashMap<Double[], Double[]> - each key:value pair is inputNode(s)Value:outputNode(s)Value
+     * @throws IOException
+     * @throws InvalidFormatException
+     */
     public HashMap<Double[], Double[]> createDataDumpFromExcelSheet(String fileName) throws IOException, InvalidFormatException {
         TextUtilities textUtilities = new TextUtilities();
         HashMap<TreeMap<Integer, Integer>, Integer> dataFile = textUtilities.createDataDumpFromExcelSheet(fileName);
         numberOfClasses = textUtilities.getNumberOfClasses();
         numberOfWords = textUtilities.getNumberOfWords();
         HashMap<Double[], Double[]> neuralNetworkData = new HashMap<>();
-        for (TreeMap<Integer, Integer> wordFrequencyMap : dataFile.keySet()) {
+        dataFile.keySet().forEach((TreeMap<Integer, Integer> wordFrequencyMap) -> {
             neuralNetworkData.put(convertToDoubleArray(wordFrequencyMap, numberOfWords), convertToBinaryArray(dataFile.get(wordFrequencyMap), numberOfClasses));
-        }
+        });
         return neuralNetworkData;
     }
 
+    /**
+     * createDataDumpFromTxtFolder() - Function that reads all the .txt files
+     * in the /data folder and creates a neuroph compliant HashMap out of it.
+     * @param folders - Array containing the names of the folders.
+     * @return HashMap<Double[], Double[]> - each key:value pair is inputNode(s)Value:outputNode(s)Value
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public HashMap<Double[], Double[]> createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
+        TextUtilities textUtilities = new TextUtilities();
+        HashMap<TreeMap<Integer, Integer>, Integer> dataFile = textUtilities.createDataDumpFromTxtFolder(folders);
+        numberOfClasses = textUtilities.getNumberOfClasses();
+        numberOfWords = textUtilities.getNumberOfWords();
+        HashMap<Double[], Double[]> neuralNetworkData = new HashMap<>();
+        dataFile.keySet().forEach((TreeMap<Integer, Integer> wordFrequencyMap) -> {
+            neuralNetworkData.put(convertToDoubleArray(wordFrequencyMap, numberOfWords), convertToBinaryArray(dataFile.get(wordFrequencyMap), numberOfClasses));
+        });
+        return neuralNetworkData;
+    }
+    
+    /**
+     * convertToBinaryArray() - Function that converts the integer class label into
+     * a binary array.
+     * @param classTypeIdentifier - the class label.
+     * @param numberOfClasses - total number of class labels in the data set (to ensure
+     * that each array is of the same size). 
+     * @return
+     */
     private Double[] convertToBinaryArray(int classTypeIdentifier, int numberOfClasses) {
         String[] bits = Integer.toBinaryString(classTypeIdentifier).split("");
         Double[] bitPattern = new Double[numberOfClasses];
@@ -43,6 +79,14 @@ public class NeurophNeuralNetworkDataCreator {
         return bitPattern;
     }
 
+    /**
+     * convertToDoubleArray() - Function that converts the wordFrequencyMap into a 
+     * array with values at the corresponding word indices. 
+     * @param textFile - the wordFrequencyMap for the textFile/excelRow.
+     * @param numberOfWords - the total number of words in the data set (to ensure 
+     * that each array is of the same size). 
+     * @return
+     */
     private Double[] convertToDoubleArray(TreeMap<Integer, Integer> textFile, int numberOfWords) {
         Double[] wordArray = new Double[numberOfWords];
         java.util.Arrays.fill(wordArray, 0.0);
@@ -51,23 +95,21 @@ public class NeurophNeuralNetworkDataCreator {
         }
         return wordArray;
     }
-
-    public HashMap<Double[], Double[]> createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
-        TextUtilities textUtilities = new TextUtilities();
-        HashMap<TreeMap<Integer, Integer>, Integer> dataFile = textUtilities.createDataDumpFromTxtFolder(folders);
-        numberOfClasses = textUtilities.getNumberOfClasses();
-        numberOfWords = textUtilities.getNumberOfWords();
-        HashMap<Double[], Double[]> neuralNetworkData = new HashMap<>();
-        for (TreeMap<Integer, Integer> wordFrequencyMap : dataFile.keySet()) {
-            neuralNetworkData.put(convertToDoubleArray(wordFrequencyMap, numberOfWords), convertToBinaryArray(dataFile.get(wordFrequencyMap), numberOfClasses));
-        }
-        return neuralNetworkData;
-    }
-
+    
+    /**
+     * getNumberOfClassTypes() - Function that returns the number of class labels in the 
+     * data set.
+     * @return Integer
+     */
     int getNumberOfClassTypes() {
         return numberOfClasses;
     }
 
+    /**
+     * getNumberOfWords() - Function that returns the number of unique words in the 
+     * data set.
+     * @return Integer
+     */
     int getNumberOfWords() {
         return numberOfWords;
     }
