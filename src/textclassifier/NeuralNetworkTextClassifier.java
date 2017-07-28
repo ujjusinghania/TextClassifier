@@ -15,6 +15,7 @@ import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.data.DataSet;
 import org.neuroph.core.data.DataSetRow;
 import org.neuroph.nnet.MultiLayerPerceptron;
+import org.neuroph.util.TransferFunctionType;
 
 /**
  *
@@ -32,7 +33,7 @@ public class NeuralNetworkTextClassifier {
 
         System.out.println("Total number of data points: " + dataArray.size());
         int trainingDataSize = (int) (dataArray.size() * 0.85);
-        System.out.println("Numbers of data points in training data:" + trainingDataSize);
+        System.out.println("Numbers of data points in training data: " + trainingDataSize);
 
         int inputSize = 0;
         int outputSize = 0;
@@ -54,7 +55,7 @@ public class NeuralNetworkTextClassifier {
             testingDataSet.put(ArrayUtils.toPrimitive(key), ArrayUtils.toPrimitive(dataArray.get(key)));
         }
 
-        NeuralNetwork textClassificationNN = new MultiLayerPerceptron(inputSize, outputSize);
+        NeuralNetwork textClassificationNN = new MultiLayerPerceptron(TransferFunctionType.SIGMOID, inputSize, outputSize);
         System.out.println("learning");
         textClassificationNN.learn(trainingDataSet);
         System.out.println("saving");

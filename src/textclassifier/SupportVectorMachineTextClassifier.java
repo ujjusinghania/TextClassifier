@@ -150,7 +150,7 @@ public class SupportVectorMachineTextClassifier {
                 boolean valueAdded = false;
 
                 for (int i = 0; i < probabilityEstimates.length; i++) {
-//                    System.out.print(labels[i] + ":" + probabilityEstimates[i] + " ");
+                    System.out.print(labels[i] + ":" + probabilityEstimates[i] + " ");
                     if (labels[i] == 1) {
                         probabilityArrayList.add(probabilityEstimates[i]);
                         valueAdded = true;
@@ -162,9 +162,9 @@ public class SupportVectorMachineTextClassifier {
                     probabilityArrayList.add(0.0);
                 }
 
-//                System.out.println("");
+                System.out.println("");
             }
-//            System.out.println("--------");
+            System.out.println("--------");
             Double maxProbabilityValue = probabilityArrayList.get(0);
             double maxProbabilityValueIndex = 1;
 
