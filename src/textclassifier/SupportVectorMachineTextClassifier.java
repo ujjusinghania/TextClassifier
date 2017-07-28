@@ -28,8 +28,11 @@ public class SupportVectorMachineTextClassifier {
     /**
      * createLIBSVMProblemFromDataFile() - Function that creates a svm_problem
      * object from a data file in the libsvm data format.
-     * @param filename - name of file whose data will be converted to a svm_problem
-     * @param preserveClass - class to be kept for current one-vs-all svm_problem.
+     *
+     * @param filename - name of file whose data will be converted to a
+     * svm_problem
+     * @param preserveClass - class to be kept for current one-vs-all
+     * svm_problem.
      * @return svm_problem.
      * @throws java.io.FileNotFoundException
      */
@@ -38,7 +41,7 @@ public class SupportVectorMachineTextClassifier {
 
         ArrayList<svm_node[]> xValues = new ArrayList<>();
         ArrayList<Double> yValues = new ArrayList<>();
-        
+
         try {
             FileReader fileReader = new FileReader("data/" + filename);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -84,9 +87,6 @@ public class SupportVectorMachineTextClassifier {
         for (int i = 0; i < xValues.size(); i++) {
             xValuesArray[i] = xValues.get(i);
         }
-        
-        xValues = null;
-        yValues = null;
 
         TrainingData.y = yValuesArray;
         TrainingData.x = xValuesArray;
@@ -105,7 +105,7 @@ public class SupportVectorMachineTextClassifier {
         LIBSVMFormatDataCreator dataCreator = new LIBSVMFormatDataCreator();
 
         try {
-            String[] folders = {"business", "politics", "entertainment", "tech"};
+            String[] folders = {"business", "politics", "entertainment", "tech", "sport"};
             dataCreator.createDataDumpFromTxtFolder(folders);
         } catch (IOException ex) {
             System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
@@ -118,12 +118,12 @@ public class SupportVectorMachineTextClassifier {
 
 //        try {
 //
-//        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
-//        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
-//
-//        for (int i = 0; i < numberOfClassTypes; i++) {
-//            SVMModels[i] = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
-//        }
+        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
+        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
+
+        for (int i = 0; i < numberOfClassTypes; i++) {
+            SVMModels[i] = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+        }
 //
 //        svm_model hello = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
 //        svm_model[] SVMModels = new svm_model[79];
@@ -131,64 +131,62 @@ public class SupportVectorMachineTextClassifier {
 //        for (int i = 0; i < SVMModels.length; i++) {
 //            SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
 //        }
-//        svm_problem testingDataFile = createLIBSVMProblemFromDataFile("libsvmDataTest.txt", 0);
-//        double correctPredictions = 0;
-//        ArrayList<Double> predictionList = new ArrayList<>();
-//
-//        for (int testingValueIndex = 0; testingValueIndex < testingDataFile.x.length; testingValueIndex++) {
-//            svm_node[] testingValue = testingDataFile.x[testingValueIndex];
-//            ArrayList<Double> probabilityArrayList = new ArrayList<Double>();
-//            for (svm_model SVMModel : SVMModels) {
-//
-//                double[] probabilityEstimates = new double[svm.svm_get_nr_class(SVMModel)];
-//                svm.svm_predict_probability(SVMModel, testingValue, probabilityEstimates);
-//
-//                int[] labels = new int[probabilityEstimates.length];
-//                svm.svm_get_labels(SVMModel, labels);
-//
-//                boolean valueAdded = false;
-//
-//                for (int i = 0; i < probabilityEstimates.length; i++) {
+        svm_problem testingDataFile = createLIBSVMProblemFromDataFile("libsvmDataTest.txt", 0);
+        double correctPredictions = 0;
+        ArrayList<Double> predictionList = new ArrayList<>();
+
+        for (int testingValueIndex = 0; testingValueIndex < testingDataFile.x.length; testingValueIndex++) {
+            svm_node[] testingValue = testingDataFile.x[testingValueIndex];
+            ArrayList<Double> probabilityArrayList = new ArrayList<Double>();
+
+            for (svm_model SVMModel : SVMModels) {
+
+                double[] probabilityEstimates = new double[svm.svm_get_nr_class(SVMModel)];
+                svm.svm_predict_probability(SVMModel, testingValue, probabilityEstimates);
+
+                int[] labels = new int[probabilityEstimates.length];
+                svm.svm_get_labels(SVMModel, labels);
+
+                boolean valueAdded = false;
+
+                for (int i = 0; i < probabilityEstimates.length; i++) {
 //                    System.out.print(labels[i] + ":" + probabilityEstimates[i] + " ");
-//                    if (labels[i] == 1) {
-//                        probabilityArrayList.add(probabilityEstimates[i]);
-//                        valueAdded = true;
-//                        break;
-//                    }
-//                }
-//
-//                if (!valueAdded) {
-//                    probabilityArrayList.add(0.0);
-//                }
-//
+                    if (labels[i] == 1) {
+                        probabilityArrayList.add(probabilityEstimates[i]);
+                        valueAdded = true;
+                        break;
+                    }
+                }
+
+                if (!valueAdded) {
+                    probabilityArrayList.add(0.0);
+                }
+
 //                System.out.println("");
-//
-//            }
+            }
 //            System.out.println("--------");
-//            Double maxProbabilityValue = probabilityArrayList.get(0);
-//            double maxProbabilityValueIndex = 1;
-//
-//            for (int i = 0; i < probabilityArrayList.size(); i++) {
-//                if (maxProbabilityValue < probabilityArrayList.get(i)) {
-//                    maxProbabilityValue = probabilityArrayList.get(i);
-//                    maxProbabilityValueIndex = i + 1;
-//                }
-//            }
-//
-//            if (Objects.equals(maxProbabilityValueIndex, testingDataFile.y[testingValueIndex])) {
-//                correctPredictions += 1;
-//            }
-//            predictionList.add(maxProbabilityValueIndex);
-//
-//            Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
-//            System.out.println("--------------------------------" + '\n' + "Got " + (int) correctPredictions + " out of " + predictionList.size() + '\n' + "Overall Accuracy = " + accuracy + "%");
-//
+            Double maxProbabilityValue = probabilityArrayList.get(0);
+            double maxProbabilityValueIndex = 1;
+
+            for (int i = 0; i < probabilityArrayList.size(); i++) {
+                if (maxProbabilityValue < probabilityArrayList.get(i)) {
+                    maxProbabilityValue = probabilityArrayList.get(i);
+                    maxProbabilityValueIndex = i + 1;
+                }
+            }
+
+            if (Objects.equals(maxProbabilityValueIndex, testingDataFile.y[testingValueIndex])) {
+                correctPredictions += 1;
+            }
+            predictionList.add(maxProbabilityValueIndex);
+        }
+        Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
+        System.out.println("--------------------------------" + '\n' + "Got " + (int) correctPredictions + " out of " + predictionList.size() + '\n' + "Overall Accuracy = " + accuracy + "%");
+
 //       } catch (Exception ex) {
 //            System.out.println("Caught an exception: main(): " + ex);
 //        }
-//        }
     }
-    
 
     protected static void setTrainingParameters(svm_parameter TrainingParameters) {
         TrainingParameters.svm_type = svm_parameter.C_SVC;
@@ -206,9 +204,11 @@ public class SupportVectorMachineTextClassifier {
     }
 
     /**
-     * trainSVMAndSaveModel() - Function that trains the SVM and creates and saves the corresponding
-     * svm_model.
-     * @param filename - name of file whose data will be converted to a svm_problem
+     * trainSVMAndSaveModel() - Function that trains the SVM and creates and
+     * saves the corresponding svm_model.
+     *
+     * @param filename - name of file whose data will be converted to a
+     * svm_problem
      * @param classType - class to be kept for current one-vs-all svm_problem.
      * @return svm_model.
      * @throws java.io.IOException;

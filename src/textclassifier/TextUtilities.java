@@ -24,6 +24,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class TextUtilities {
 
+    private int classTypeIdentifier = 1;
+    private Map<String, Integer> classificationMap;
     // Universal Map to make sure that the same word in different titles have the same index in the resultant data set.
     private HashMap<String, Integer> wordIndexMap = new HashMap<>();
     // Size of the wordIndexMap to keep track of the index to be assigned to the next new word. 
@@ -67,7 +69,7 @@ public class TextUtilities {
      * String filename - the name of the .xlsx file that will be read and
      * converted to libsvm data format.
      */
-    public HashMap<String, String> createDataDumpFromExcelSheet(String filename) throws InvalidFormatException, IOException {
+    public HashMap<TreeMap<Integer, Integer>, Integer> createDataDumpFromExcelSheet(String filename) throws InvalidFormatException, IOException {
 
         HashMap<String, String> excelSheetDatabase = new HashMap<String, String>();
 
@@ -87,23 +89,22 @@ public class TextUtilities {
         } catch (InvalidFormatException ex) {
             System.out.println("Caught an IOException: createDataDumpFromExcelSheet()" + '\n' + "Exception: " + ex);
         }
-        return excelSheetDatabase;
+        return classifyAndCreateDataFile(excelSheetDatabase);
     }
 
     /**
      * createDataDumpFromTxtFolder() - Function that creates a word frequency
-     * chart for all the .txt files in the /data folder. returnType: Void.
-     * parameters: String folder - specifies folder for which datadump is
-     * created.
+     * chart for all the .txt files in the /data folder.
+     *
+     * @param folders
+     * @return
+     * @throws java.io.FileNotFoundException
      */
-    public HashMap<String, String> createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
+    public HashMap<TreeMap<Integer, Integer>, Integer> createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
 
-        HashMap<String, String> foldersDatabase = new HashMap<String, String>();
+        HashMap<String, String> foldersDatabase = new HashMap<>();
 
-        for (int i = 0; i < folders.length; i++) {
-
-            String folder = folders[i];
-
+        for (String folder : folders) {
             // Change path extension to location of working directory/folder containing all files.
             File[] files = new File("data/" + folder).listFiles();
 
@@ -113,13 +114,12 @@ public class TextUtilities {
                     continue;
                 }
 
-                String fileName = file.getAbsolutePath();
                 String fileLine;
                 String textFile = "";
 
                 try {
 
-                    FileReader fileReader = new FileReader(fileName);
+                    FileReader fileReader = new FileReader(file.getAbsolutePath());
                     BufferedReader bufferedReader = new BufferedReader(fileReader);
 
                     while ((fileLine = bufferedReader.readLine()) != null) {
@@ -129,16 +129,37 @@ public class TextUtilities {
                     foldersDatabase.put(textFile, folder);
 
                 } catch (FileNotFoundException ex) {
-                    System.out.println("File " + fileName + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
+                    System.out.println("File " + file.getAbsolutePath() + " couldn't be found: createDataDumpFromTxtFolder(String folder)");
                 }
 
             }
         }
-
-        return foldersDatabase;
+        return classifyAndCreateDataFile(foldersDatabase);
     }
 
-    int getNumberOfWords() {
+    public int getNumberOfWords() {
         return wordIndexSize - 1;
+    }
+
+    public int getNumberOfClasses() {
+        return classTypeIdentifier - 1;
+    }
+
+    private HashMap<TreeMap<Integer, Integer>, Integer> classifyAndCreateDataFile(HashMap<String, String> dataFile) throws IOException {
+
+        classificationMap = new HashMap<>();
+
+        HashMap<TreeMap<Integer, Integer>, Integer> finalData = new HashMap<>();
+
+        dataFile.keySet().forEach((textFile) -> {
+            String classLabel = dataFile.get(textFile);
+            if (!classificationMap.containsKey(classLabel)) {
+                classificationMap.put(classLabel, classTypeIdentifier);
+                classTypeIdentifier += 1;
+            }
+
+            finalData.put(splitStringAndMakeWordFrequencyMap(textFile), classificationMap.get(classLabel));
+        });
+        return finalData;
     }
 }
