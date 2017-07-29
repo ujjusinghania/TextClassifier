@@ -23,7 +23,7 @@ public class NeurophNeuralNetworkDataCreator {
     /**
      * createDataDumpFromExcelSheet() - Function that reads the given excel file and 
      * creates a neuroph compliant HashMap out of it.
-     * @param filename - name of the file.
+     * @param fileName - name of the file.
      * @return HashMap<Double[], Double[]> - each key:value pair is inputNode(s)Value:outputNode(s)Value
      * @throws IOException
      * @throws InvalidFormatException
@@ -66,7 +66,7 @@ public class NeurophNeuralNetworkDataCreator {
      * @param classTypeIdentifier - the class label.
      * @param numberOfClasses - total number of class labels in the data set (to ensure
      * that each array is of the same size). 
-     * @return
+     * @return Double[]
      */
     private Double[] convertToBinaryArray(int classTypeIdentifier, int numberOfClasses) {
         String[] bits = Integer.toBinaryString(classTypeIdentifier).split("");
@@ -85,14 +85,14 @@ public class NeurophNeuralNetworkDataCreator {
      * @param textFile - the wordFrequencyMap for the textFile/excelRow.
      * @param numberOfWords - the total number of words in the data set (to ensure 
      * that each array is of the same size). 
-     * @return
+     * @return Double[]
      */
     private Double[] convertToDoubleArray(TreeMap<Integer, Integer> textFile, int numberOfWords) {
         Double[] wordArray = new Double[numberOfWords];
         java.util.Arrays.fill(wordArray, 0.0);
-        for (int key : textFile.keySet()) {
+        textFile.keySet().forEach((key) -> {
             wordArray[key - 1] = (double) textFile.get(key);
-        }
+        });
         return wordArray;
     }
     

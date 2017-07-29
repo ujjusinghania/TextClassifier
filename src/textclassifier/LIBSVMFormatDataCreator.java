@@ -20,10 +20,9 @@ public class LIBSVMFormatDataCreator {
     private int numberOfWords;
 
     /**
-     * createDataDumpFromExcelSheet() - Function that creates a word frequency
-     * chart for all data in an Excel Sheet.
-     *
-     * @param filename
+     * createDataDumpFromExcelSheet() - Function that reads the given excel file and
+     * creates a libsvm data file out of it.
+     * @param filename - name of the file. 
      * @throws org.apache.poi.openxml4j.exceptions.InvalidFormatException
      * @throws java.io.IOException
      */
@@ -35,10 +34,9 @@ public class LIBSVMFormatDataCreator {
     }
 
     /**
-     * createDataDumpFromTxtFolder() - Function that creates a word frequency
-     * chart for all the .txt files in the /data folder.
-     *
-     * @param folders
+     * createDataDumpFromTxtFolder() - Function that reads all the .txt files
+     * in the /data folder and creates a libsvm data file out of it.
+     * @param folders - Array containing the names of the folders.
      * @throws java.io.IOException
      */
     public void createDataDumpFromTxtFolder(String[] folders) throws IOException {
@@ -50,10 +48,10 @@ public class LIBSVMFormatDataCreator {
 
     /**
      * createLIBSVMDataFile() - Function that creates a text file in the LIBSVM
-     * format to train the SVM classifier. returnType: Void. parameters: Integer
-     * classLabel - specifies the label for the dataPoint,
-     * HashMap<Integer, Integer> - the wordFrequencyMap that is to be written to
-     * the file.
+     * format to train the SVM classifier. 
+     * @param libsvmData - tokenized data that contains the wordFrequencyMap for each file/row 
+     * and the corresponding class label. 
+     * @throws java.io.IOException
      */
     private void createLIBSVMDataFile(HashMap<TreeMap<Integer, Integer>, Integer> libsvmData) throws IOException {
         String fileNameString = "data/libsvmData.txt";
@@ -73,11 +71,21 @@ public class LIBSVMFormatDataCreator {
         bufferedWriter.close();
     }
 
-    int getNumberOfClassTypes() {
+    /**
+     * getNumberOfClassTypes() - Function that returns the number of class labels in the 
+     * data set.
+     * @return Integer
+     */
+    public int getNumberOfClassTypes() {
         return numberOfClasses;
     }
 
-    int getNumberOfWords() {
+    /**
+     * getNumberOfWords() - Function that returns the number of unique words in the 
+     * data set.
+     * @return Integer
+     */
+    public int getNumberOfWords() {
         return numberOfWords;
     }
 
