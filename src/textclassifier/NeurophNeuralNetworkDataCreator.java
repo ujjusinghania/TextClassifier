@@ -24,7 +24,7 @@ public class NeurophNeuralNetworkDataCreator {
      * createDataDumpFromExcelSheet() - Function that reads the given excel file and 
      * creates a neuroph compliant HashMap out of it.
      * @param fileName - name of the file.
-     * @return HashMap<Double[], Double[]> - each key:value pair is inputNode(s)Value:outputNode(s)Value
+     * @return HashMap - each key:value pair is inputNode(s)Value:outputNode(s)Value
      * @throws IOException
      * @throws InvalidFormatException
      */
@@ -44,7 +44,7 @@ public class NeurophNeuralNetworkDataCreator {
      * createDataDumpFromTxtFolder() - Function that reads all the .txt files
      * in the /data folder and creates a neuroph compliant HashMap out of it.
      * @param folders - Array containing the names of the folders.
-     * @return HashMap<Double[], Double[]> - each key:value pair is inputNode(s)Value:outputNode(s)Value
+     * @return HashMap - each key:value pair is inputNode(s)Value:outputNode(s)Value
      * @throws FileNotFoundException
      * @throws IOException
      */

@@ -35,11 +35,11 @@ public class TextUtilities {
      * splitStringAndMakeWordFrequencyMap() - Function that creates a word
      * frequency map for the provided string and stores it in wordFrequencyMap.
      * @param fileLine - String that will be converted into a wordFrequencyMap.
-     * @return HashMap<Integer, Integer> - the wordFrequencyMap.
+     * @return HashMap - the wordFrequencyMap.
      */
     public TreeMap<Integer, Integer> splitStringAndMakeWordFrequencyMap(String fileLine) {
 
-        TreeMap<Integer, Integer> wordFrequencyMap = new TreeMap<Integer, Integer>();
+        TreeMap<Integer, Integer> wordFrequencyMap = new TreeMap<>();
         TextPreprocessor textCleaner = new TextPreprocessor();
 
         for (String word : fileLine.split(" ")) {
@@ -67,7 +67,7 @@ public class TextUtilities {
      * createDataDumpFromExcelSheet() - Function that reads the given excel file and 
      * creates a HashMap out of it.
      * @param filename - name of the file.
-     * @return HashMap<TreeMap<Integer, Integer>, Integer> - each key:value pair 
+     * @return HashMap - each key:value pair 
      * is wordFrequencyMap for excelRow: classLabel.
      * @throws org.apache.poi.openxml4j.exceptions.InvalidFormatException
      * @throws java.io.IOException
@@ -99,7 +99,7 @@ public class TextUtilities {
      * createDataDumpFromTxtFolder() - Function that reads all the .txt files
      * in the /data folder and creates a HashMap out of it.
      * @param folders - Array containing the names of the folders.
-     * @return HashMap<TreeMap<Integer, Integer>, Integer> - each key:value pair 
+     * @return HashMap - each key:value pair 
      * is wordFrequencyMap for file: classLabel.
      * @throws java.io.FileNotFoundException
      */
