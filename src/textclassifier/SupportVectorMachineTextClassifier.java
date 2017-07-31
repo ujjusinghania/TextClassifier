@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
@@ -101,36 +102,55 @@ public class SupportVectorMachineTextClassifier {
      * @throws org.apache.poi.openxml4j.exceptions.InvalidFormatException
      */
     public static void main(String[] args) throws IOException, InvalidFormatException {
-        // TODO code application logic here
         LIBSVMFormatDataCreator dataCreator = new LIBSVMFormatDataCreator();
 
-        try {
-            String[] folders = {"business", "politics", "entertainment", "tech", "sport"};
-            dataCreator.createDataDumpFromTxtFolder(folders);
-        } catch (IOException ex) {
-            System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
-        }
-//        try {
-//            dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
-//        } catch (IOException | InvalidFormatException ex) {
-//            System.out.println("Couldn't run the method: createDataDumpFromExcelSheet(): " + ex);
-//        }
+        InputStreamReader input = new InputStreamReader(System.in);
+        BufferedReader bufferedReader = new BufferedReader(input);
 
-//        try {
-//
-        int numberOfClassTypes = dataCreator.getNumberOfClassTypes();
-        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
+        System.out.print("1. Load data from folders\n2. Load data from excel (.xlsx) file\n3. Continue \nEnter your option: ");
+        int option = Integer.parseInt(bufferedReader.readLine());
 
-        for (int i = 0; i < numberOfClassTypes; i++) {
-            SVMModels[i] = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+        switch (option) {
+            case 1:
+                try {
+                    String[] folders = {"business", "politics", "entertainment", "tech", "sport"};
+                    dataCreator.createDataDumpFromTxtFolder(folders);
+                } catch (IOException ex) {
+                    System.out.println("Couldn't run the method: createDataDumpFromTxtFolder(): " + ex);
+                }
+                break;
+            case 2:
+                try {
+                    dataCreator.createDataDumpFromExcelSheet("News-Categories.xlsx");
+                } catch (IOException | InvalidFormatException ex) {
+                    System.out.println("Couldn't run the method: createDataDumpFromExcelSheet(): " + ex);
+                }
+                break;
+            case 3: 
+                break; 
+            default:
+                System.out.println("Invalid option selected. Program terminating.");
         }
-//
-//        svm_model hello = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
-//        svm_model[] SVMModels = new svm_model[79];
-//
-//        for (int i = 0; i < SVMModels.length; i++) {
-//            SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
-//        }
+
+        // Create switch case to allow the user to choose folder or excel sheet and specify the names of the files/folders.
+//        try {
+        System.out.print("1. Train SVM Models\n2. Load SVM Models\nEnter your option: ");
+        option = Integer.parseInt(bufferedReader.readLine());
+
+        svm_model[] SVMModels = null;
+
+        switch (option) {
+            case 1:
+                SVMModels = trainAndGetSVMModels(dataCreator.getNumberOfClassTypes());
+                break;
+            case 2:
+                SVMModels = loadAndGetSVMModels();
+                break;
+            default:
+                System.out.println("Invalid option selected. Program terminating.");
+        }
+
+        // From here on out, add inputs for filenames, etc. 
         svm_problem testingDataFile = createLIBSVMProblemFromDataFile("libsvmDataTest.txt", 0);
         double correctPredictions = 0;
         ArrayList<Double> predictionList = new ArrayList<>();
@@ -206,12 +226,11 @@ public class SupportVectorMachineTextClassifier {
     /**
      * trainSVMAndSaveModel() - Function that trains the SVM and creates and
      * saves the corresponding svm_model.
-     *
      * @param filename - name of file whose data will be converted to a
      * svm_problem
      * @param classType - class to be kept for current one-vs-all svm_problem.
      * @return svm_model.
-     * @throws java.io.IOException;
+     * @throws java.io.IOException
      */
     protected static svm_model trainSVMAndSaveModel(String filename, int classType) throws IOException {
         svm_problem TrainingData = createLIBSVMProblemFromDataFile(filename, classType);
@@ -221,6 +240,25 @@ public class SupportVectorMachineTextClassifier {
         String fileNameString = "data/" + classType + filename + ".model";
         svm.svm_save_model(fileNameString, SVMModel);
         return SVMModel;
+    }
+
+    private static svm_model[] trainAndGetSVMModels(int numberOfClassTypes) throws IOException {
+        svm_model[] SVMModels = new svm_model[numberOfClassTypes];
+
+        for (int i = 0; i < numberOfClassTypes; i++) {
+            SVMModels[i] = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+        }
+        return SVMModels;
+    }
+
+    private static svm_model[] loadAndGetSVMModels() throws IOException {
+        svm_model hello = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
+        svm_model[] SVMModels = new svm_model[svm.svm_get_nr_class(hello)];
+
+        for (int i = 0; i < SVMModels.length; i++) {
+            SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
+        }
+        return SVMModels;
     }
 
 }
