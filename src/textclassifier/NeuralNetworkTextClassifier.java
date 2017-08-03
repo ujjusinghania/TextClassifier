@@ -28,21 +28,15 @@ public class NeuralNetworkTextClassifier {
         NeurophNeuralNetworkDataCreator dataCreator = new NeurophNeuralNetworkDataCreator();
         String[] folders = {"tech", "sport", "business", "politics", "entertainment"};
         HashMap<Double[], Double[]> dataArray = dataCreator.createDataDumpFromTxtFolder(folders);
-        
-        dataCreator = null;
 
         System.out.println("Total number of data points: " + dataArray.size());
         int trainingDataSize = (int) (dataArray.size() * 0.85);
         System.out.println("Numbers of data points in training data: " + trainingDataSize);
 
-        int inputSize = 0;
-        int outputSize = 0;
-
-        for (Double[] key : dataArray.keySet()) {
-            inputSize = key.length;
-            outputSize = dataArray.get(key).length;
-            break;
-        }
+        int inputSize = dataCreator.getNumberOfWords();
+        int outputSize = dataCreator.getNumberOfClassTypes();
+          
+        dataCreator = null;
 
         HashMap<double[], double[]> testingDataSet = new HashMap<>();
         DataSet trainingDataSet = new DataSet(inputSize, outputSize);
