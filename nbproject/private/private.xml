@@ -3,7 +3,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/Users/ujjwalsinghania/Documents/Development/GitHub/TextClassifier/src/textclassifier/TextUtilities.java</file>
             <file>file:/Users/ujjwalsinghania/Documents/Development/GitHub/TextClassifier/src/textclassifier/LIBSVMFormatDataCreator.java</file>
+            <file>file:/Users/ujjwalsinghania/Documents/Development/GitHub/TextClassifier/src/textclassifier/SupportVectorMachineTextClassifier.java</file>
             <file>file:/Users/ujjwalsinghania/Documents/Development/GitHub/TextClassifier/src/textclassifier/NeurophNeuralNetworkDataCreator.java</file>
             <file>file:/Users/ujjwalsinghania/Documents/Development/GitHub/TextClassifier/src/textclassifier/TextPreprocessor.java</file>
             <file>file:/Users/ujjwalsinghania/Documents/Development/GitHub/TextClassifier/src/textclassifier/NeuralNetworkTextClassifier.java</file>

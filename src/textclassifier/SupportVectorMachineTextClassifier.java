@@ -11,7 +11,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 import libsvm.svm;
 import libsvm.svm_model;
@@ -126,14 +125,12 @@ public class SupportVectorMachineTextClassifier {
                     System.out.println("Couldn't run the method: createDataDumpFromExcelSheet(): " + ex);
                 }
                 break;
-            case 3: 
-                break; 
+            case 3:
+                break;
             default:
                 System.out.println("Invalid option selected. Program terminating.");
         }
 
-        // Create switch case to allow the user to choose folder or excel sheet and specify the names of the files/folders.
-//        try {
         System.out.print("1. Train SVM Models\n2. Load SVM Models\nEnter your option: ");
         option = Integer.parseInt(bufferedReader.readLine());
 
@@ -150,62 +147,7 @@ public class SupportVectorMachineTextClassifier {
                 System.out.println("Invalid option selected. Program terminating.");
         }
 
-        // From here on out, add inputs for filenames, etc. 
-        svm_problem testingDataFile = createLIBSVMProblemFromDataFile("libsvmDataTest.txt", 0);
-        double correctPredictions = 0;
-        ArrayList<Double> predictionList = new ArrayList<>();
-
-        for (int testingValueIndex = 0; testingValueIndex < testingDataFile.x.length; testingValueIndex++) {
-            svm_node[] testingValue = testingDataFile.x[testingValueIndex];
-            ArrayList<Double> probabilityArrayList = new ArrayList<Double>();
-
-            for (svm_model SVMModel : SVMModels) {
-
-                double[] probabilityEstimates = new double[svm.svm_get_nr_class(SVMModel)];
-                svm.svm_predict_probability(SVMModel, testingValue, probabilityEstimates);
-
-                int[] labels = new int[probabilityEstimates.length];
-                svm.svm_get_labels(SVMModel, labels);
-
-                boolean valueAdded = false;
-
-                for (int i = 0; i < probabilityEstimates.length; i++) {
-                    System.out.print(labels[i] + ":" + probabilityEstimates[i] + " ");
-                    if (labels[i] == 1) {
-                        probabilityArrayList.add(probabilityEstimates[i]);
-                        valueAdded = true;
-                        break;
-                    }
-                }
-
-                if (!valueAdded) {
-                    probabilityArrayList.add(0.0);
-                }
-
-                System.out.println("");
-            }
-            System.out.println("--------");
-            Double maxProbabilityValue = probabilityArrayList.get(0);
-            double maxProbabilityValueIndex = 1;
-
-            for (int i = 0; i < probabilityArrayList.size(); i++) {
-                if (maxProbabilityValue < probabilityArrayList.get(i)) {
-                    maxProbabilityValue = probabilityArrayList.get(i);
-                    maxProbabilityValueIndex = i + 1;
-                }
-            }
-
-            if (Objects.equals(maxProbabilityValueIndex, testingDataFile.y[testingValueIndex])) {
-                correctPredictions += 1;
-            }
-            predictionList.add(maxProbabilityValueIndex);
-        }
-        Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
-        System.out.println("--------------------------------" + '\n' + "Got " + (int) correctPredictions + " out of " + predictionList.size() + '\n' + "Overall Accuracy = " + accuracy + "%");
-
-//       } catch (Exception ex) {
-//            System.out.println("Caught an exception: main(): " + ex);
-//        }
+        predictAndClassifyDocuments(SVMModels);
     }
 
     protected static void setTrainingParameters(svm_parameter TrainingParameters) {
@@ -224,15 +166,16 @@ public class SupportVectorMachineTextClassifier {
     }
 
     /**
-     * trainSVMAndSaveModel() - Function that trains the SVM and creates and
-     * saves the corresponding svm_model.
+     * trainSVMAndSaveModels() - Function that trains the SVM and creates and
+ saves the corresponding svm_model.
+     *
      * @param filename - name of file whose data will be converted to a
      * svm_problem
      * @param classType - class to be kept for current one-vs-all svm_problem.
      * @return svm_model.
      * @throws java.io.IOException
      */
-    protected static svm_model trainSVMAndSaveModel(String filename, int classType) throws IOException {
+    protected static svm_model trainSVMAndSaveModels(String filename, int classType) throws IOException {
         svm_problem TrainingData = createLIBSVMProblemFromDataFile(filename, classType);
         svm_parameter TrainingParameters = new svm_parameter();
         setTrainingParameters(TrainingParameters);
@@ -246,19 +189,80 @@ public class SupportVectorMachineTextClassifier {
         svm_model[] SVMModels = new svm_model[numberOfClassTypes];
 
         for (int i = 0; i < numberOfClassTypes; i++) {
-            SVMModels[i] = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", i + 1);
+            SVMModels[i] = SupportVectorMachineTextClassifier.trainSVMAndSaveModels("libsvmDataTrain.txt", i + 1);
         }
         return SVMModels;
     }
 
     private static svm_model[] loadAndGetSVMModels() throws IOException {
-        svm_model hello = SupportVectorMachineTextClassifier.trainSVMAndSaveModel("libsvmDataTrain.txt", 0);
+        svm_model hello = SupportVectorMachineTextClassifier.trainSVMAndSaveModels("libsvmDataTrain.txt", 0);
         svm_model[] SVMModels = new svm_model[svm.svm_get_nr_class(hello)];
 
         for (int i = 0; i < SVMModels.length; i++) {
             SVMModels[i] = svm.svm_load_model("data/" + (i + 1) + "libsvmDataTrain.txt.model");
         }
         return SVMModels;
+    }
+
+    private static void predictAndClassifyDocuments(svm_model[] SVMModels) {
+
+        try {
+            svm_problem testingDataFile = createLIBSVMProblemFromDataFile("libsvmDataTest.txt", 0);
+            double correctPredictions = 0;
+            ArrayList<Double> predictionList = new ArrayList<>();
+
+            for (int testingValueIndex = 0; testingValueIndex < testingDataFile.x.length; testingValueIndex++) {
+                svm_node[] testingValue = testingDataFile.x[testingValueIndex];
+                ArrayList<Double> probabilityArrayList = new ArrayList<Double>();
+
+                for (svm_model SVMModel : SVMModels) {
+
+                    double[] probabilityEstimates = new double[svm.svm_get_nr_class(SVMModel)];
+                    svm.svm_predict_probability(SVMModel, testingValue, probabilityEstimates);
+
+                    int[] labels = new int[probabilityEstimates.length];
+                    svm.svm_get_labels(SVMModel, labels);
+
+                    boolean valueAdded = false;
+
+                    for (int i = 0; i < probabilityEstimates.length; i++) {
+                        System.out.print(labels[i] + ":" + probabilityEstimates[i] + " ");
+                        if (labels[i] == 1) {
+                            probabilityArrayList.add(probabilityEstimates[i]);
+                            valueAdded = true;
+                            break;
+                        }
+                    }
+
+                    if (!valueAdded) {
+                        probabilityArrayList.add(0.0);
+                    }
+
+                    System.out.println("");
+                }
+                System.out.println("--------");
+                Double maxProbabilityValue = probabilityArrayList.get(0);
+                double maxProbabilityValueIndex = 1;
+
+                for (int i = 0; i < probabilityArrayList.size(); i++) {
+                    if (maxProbabilityValue < probabilityArrayList.get(i)) {
+                        maxProbabilityValue = probabilityArrayList.get(i);
+                        maxProbabilityValueIndex = i + 1;
+                    }
+                }
+
+                if (Objects.equals(maxProbabilityValueIndex, testingDataFile.y[testingValueIndex])) {
+                    correctPredictions += 1;
+                }
+                predictionList.add(maxProbabilityValueIndex);
+            }
+            Double accuracy = correctPredictions / (double) (predictionList.size()) * 100.0;
+            System.out.println("--------------------------------" + '\n' + "Got "
+                    + (int) correctPredictions + " out of " + predictionList.size()
+                    + '\n' + "Overall Accuracy = " + accuracy + "%");
+        } catch (IOException ex) {
+            System.out.println("Caught an IOException in predictAndClassifyDocuments(): " + ex.toString());
+        }
     }
 
 }

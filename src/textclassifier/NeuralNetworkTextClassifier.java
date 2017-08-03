@@ -59,7 +59,7 @@ public class NeuralNetworkTextClassifier {
         System.out.println("learning");
         textClassificationNN.learn(trainingDataSet);
         System.out.println("saving");
-        textClassificationNN.save("/data/neuralNetwork.nnet");
+        textClassificationNN.save("data/neuralNetwork.nnet");
 
         System.out.println("predicting");
         int correctPredictions = 0;

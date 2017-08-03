@@ -68,6 +68,10 @@ public class NeurophNeuralNetworkDataCreator {
      * that each array is of the same size). 
      * @return Double[]
      */
+    
+    // CHANGE IT TO AN ARRAY WITH NUMBEROFCLASSES ELEMENTS 
+    // THAT IS FOR 1 it is [1, 0, 0, 0, 0, .....] AND FOR 3 IT IS [0, 0, 1, 0, ....]
+    
     private Double[] convertToBinaryArray(int classTypeIdentifier, int numberOfClasses) {
         String[] bits = Integer.toBinaryString(classTypeIdentifier).split("");
         Double[] bitPattern = new Double[numberOfClasses];
