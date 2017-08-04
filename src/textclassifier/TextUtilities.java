@@ -32,10 +32,9 @@ public class TextUtilities {
     private Integer wordIndexSize = 1;
 
     /**
-     * splitStringAndMakeWordFrequencyMap() - Function that creates a word
-     * frequency map for the provided string and stores it in wordFrequencyMap.
-     * @param fileLine - String that will be converted into a wordFrequencyMap.
-     * @return HashMap - the wordFrequencyMap.
+     * Function that creates a word frequency map for the provided string and stores it in wordFrequencyMap.
+     * @param fileLine String that will be converted into a wordFrequencyMap.
+     * @return HashMap The wordFrequencyMap.
      */
     public TreeMap<Integer, Integer> splitStringAndMakeWordFrequencyMap(String fileLine) {
 
@@ -64,11 +63,9 @@ public class TextUtilities {
     }
 
     /**
-     * createDataDumpFromExcelSheet() - Function that reads the given excel file and 
-     * creates a HashMap out of it.
-     * @param filename - name of the file.
-     * @return HashMap - each key:value pair 
-     * is wordFrequencyMap for excelRow: classLabel.
+     * Function that reads the given excel file and creates a HashMap out of it.
+     * @param filename Name of the file.
+     * @return HashMap Each key:value pair is wordFrequencyMap for excelRow: classLabel.
      * @throws org.apache.poi.openxml4j.exceptions.InvalidFormatException
      * @throws java.io.IOException
      */
@@ -96,11 +93,9 @@ public class TextUtilities {
     }
 
     /**
-     * createDataDumpFromTxtFolder() - Function that reads all the .txt files
-     * in the /data folder and creates a HashMap out of it.
-     * @param folders - Array containing the names of the folders.
-     * @return HashMap - each key:value pair 
-     * is wordFrequencyMap for file: classLabel.
+     * Function that reads all the .txt files in the /data folder and creates a HashMap out of it.
+     * @param folders Array containing the names of the folders.
+     * @return HashMap Each key:value pair is wordFrequencyMap for file: classLabel.
      * @throws java.io.FileNotFoundException
      */
     public HashMap<TreeMap<Integer, Integer>, Integer> createDataDumpFromTxtFolder(String[] folders) throws FileNotFoundException, IOException {
@@ -141,11 +136,9 @@ public class TextUtilities {
     }
 
     /**
-     * classifyAndCreateDataFile() - Function that processes the given dataFile HashMap,
-     * quantifies the text and classLabels into numbers, and creates a HashMap out of it.
-     * @param dataFile (HashMap<String, String>) - key:value pair = text:classLabel.
-     * @return HashMap<TreeMap<Integer, Integer>, Integer> - each key:value pair 
-     * is wordFrequencyMap for file: classLabel.
+     * Function that processes the given dataFile HashMap, quantifies the text and classLabels into numbers, and creates a HashMap out of it.
+     * @param dataFile Each key:value pair is text: classLabel.
+     * @return Each key:value pair is wordFrequencyMap for file: classLabel.
      * @throws IOException
      */
     private HashMap<TreeMap<Integer, Integer>, Integer> classifyAndCreateDataFile(HashMap<String, String> dataFile) throws IOException {
@@ -167,8 +160,7 @@ public class TextUtilities {
     }
     
     /**
-     * getNumberOfWords() - Function that returns the number of unique words in the 
-     * data set.
+     * Function that returns the number of unique words in the data set.
      * @return Integer
      */
     public int getNumberOfWords() {
@@ -176,8 +168,7 @@ public class TextUtilities {
     }
 
     /**
-     * getNumberOfClassTypes() - Function that returns the number of class labels in the 
-     * data set.
+     * Function that returns the number of class labels in the data set.
      * @return Integer
      */
     public int getNumberOfClasses() {

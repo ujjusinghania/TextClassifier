@@ -26,13 +26,9 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 public class SupportVectorMachineTextClassifier {
 
     /**
-     * createLIBSVMProblemFromDataFile() - Function that creates a svm_problem
-     * object from a data file in the libsvm data format.
-     *
-     * @param filename - name of file whose data will be converted to a
-     * svm_problem
-     * @param preserveClass - class to be kept for current one-vs-all
-     * svm_problem.
+     * Function that creates a svm_problem object from a data file in the libsvm data format.
+     * @param filename Name of file whose data will be converted to a svm_problem.
+     * @param preserveClass Class to be preserved for current one-vs-all svm_problem.
      * @return svm_problem.
      * @throws java.io.FileNotFoundException
      */
@@ -166,12 +162,9 @@ public class SupportVectorMachineTextClassifier {
     }
 
     /**
-     * trainSVMAndSaveModels() - Function that trains the SVM and creates and
- saves the corresponding svm_model.
-     *
-     * @param filename - name of file whose data will be converted to a
-     * svm_problem
-     * @param classType - class to be kept for current one-vs-all svm_problem.
+     * Function that trains the SVM and creates and saves the corresponding svm_model.
+     * @param filename Name of file whose data will be converted to a svm_problem.
+     * @param classType Class to be preserved for current one-vs-all svm_problem.
      * @return svm_model.
      * @throws java.io.IOException
      */

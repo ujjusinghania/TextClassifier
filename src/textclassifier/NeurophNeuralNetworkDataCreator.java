@@ -21,10 +21,9 @@ public class NeurophNeuralNetworkDataCreator {
     private int numberOfWords;
 
     /**
-     * createDataDumpFromExcelSheet() - Function that reads the given excel file and 
-     * creates a neuroph compliant HashMap out of it.
-     * @param fileName - name of the file.
-     * @return HashMap - each key:value pair is inputNode(s)Value:outputNode(s)Value
+     * Function that reads the given excel file and creates a neuroph compliant HashMap out of it.
+     * @param fileName Name of the file.
+     * @return HashMap Each key:value pair is inputNode(s)Value:outputNode(s)Value
      * @throws IOException
      * @throws InvalidFormatException
      */
@@ -41,10 +40,9 @@ public class NeurophNeuralNetworkDataCreator {
     }
 
     /**
-     * createDataDumpFromTxtFolder() - Function that reads all the .txt files
-     * in the /data folder and creates a neuroph compliant HashMap out of it.
-     * @param folders - Array containing the names of the folders.
-     * @return HashMap - each key:value pair is inputNode(s)Value:outputNode(s)Value
+     * Function that reads all the .txt files in the /data folder and creates a neuroph compliant HashMap out of it.
+     * @param folders Array containing the names of the folders.
+     * @return HashMap Each key:value pair is inputNode(s)Value:outputNode(s)Value
      * @throws FileNotFoundException
      * @throws IOException
      */
@@ -61,11 +59,9 @@ public class NeurophNeuralNetworkDataCreator {
     }
     
     /**
-     * convertToBinaryArray() - Function that converts the integer class label into
-     * a binary array.
-     * @param classTypeIdentifier - the class label.
-     * @param numberOfClasses - total number of class labels in the data set (to ensure
-     * that each array is of the same size). 
+     * Function that converts the integer class label into a binary array.
+     * @param classTypeIdentifier The class label.
+     * @param numberOfClasses Total number of class labels in the data set (to ensure that each resultant array is of the same size). 
      * @return Double[]
      */
     private Double[] convertToBinaryArray(int classTypeIdentifier, int numberOfClasses) {
@@ -76,11 +72,9 @@ public class NeurophNeuralNetworkDataCreator {
     }
 
     /**
-     * convertToDoubleArray() - Function that converts the wordFrequencyMap into a 
-     * array with values at the corresponding word indices. 
-     * @param textFile - the wordFrequencyMap for the textFile/excelRow.
-     * @param numberOfWords - the total number of words in the data set (to ensure 
-     * that each array is of the same size). 
+     * Function that converts the wordFrequencyMap into a array with values at the corresponding word indices. 
+     * @param textFile The wordFrequencyMap for the textFile/excelRow.
+     * @param numberOfWords The total number of words in the data set (to ensure that each resultant array is of the same size). 
      * @return Double[]
      */
     private Double[] convertToDoubleArray(TreeMap<Integer, Integer> textFile, int numberOfWords) {
@@ -93,8 +87,7 @@ public class NeurophNeuralNetworkDataCreator {
     }
     
     /**
-     * getNumberOfClassTypes() - Function that returns the number of class labels in the 
-     * data set.
+     * Function that returns the number of class labels in the data set.
      * @return Integer
      */
     int getNumberOfClassTypes() {
@@ -102,8 +95,7 @@ public class NeurophNeuralNetworkDataCreator {
     }
 
     /**
-     * getNumberOfWords() - Function that returns the number of unique words in the 
-     * data set.
+     * Function that returns the number of unique words in the data set.
      * @return Integer
      */
     int getNumberOfWords() {
